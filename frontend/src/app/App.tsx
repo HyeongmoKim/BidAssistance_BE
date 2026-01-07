@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LoginPage } from "./components/LoginPage";
 import { SignupPage } from "./components/SignupPage";
 import { Dashboard } from "./components/Dashboard";
@@ -13,22 +13,28 @@ import { Button } from "./components/ui/button";
 import { Badge } from "./components/ui/badge";
 import type { Page } from "../types/navigation";
 
-import { 
-  LayoutDashboard, 
-  Search, 
-  TrendingUp, 
-  ShoppingCart, 
-  Bell, 
-  MessageSquare, 
-  User, 
+import {
+  LayoutDashboard,
+  Search,
+  TrendingUp,
+  ShoppingCart,
+  Bell,
+  MessageSquare,
+  User,
   Building2,
   LogOut,
   Menu,
-  X
+  X,
 } from "lucide-react";
 import { toast, Toaster } from "sonner";
 
-// type Page = "login" | "signup" | "dashboard" | "bids" | "analytics" | "summary" | "cart" | "notifications" | "chatbot" | "profile";
+type NavState = { page: Page; bidId?: number };
+
+function isNavState(v: unknown): v is NavState {
+  if (!v || typeof v !== "object") return false;
+  const anyV = v as Record<string, unknown>;
+  return typeof anyV.page === "string";
+}
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>("login");
@@ -38,41 +44,69 @@ export default function App() {
   const [selectedBidId, setSelectedBidId] = useState<number | undefined>();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // ---- history sync (핵심) ----
+  useEffect(() => {
+    // 최초 로드시 history.state에 page가 없으면 login으로 초기화
+    const st = window.history.state;
+    if (isNavState(st) && st.page) {
+      setCurrentPage(st.page as Page);
+      setSelectedBidId(st.bidId as number | undefined);
+    } else {
+      window.history.replaceState({ page: "login" } satisfies NavState, "");
+    }
+
+    const onPopState = (e: PopStateEvent) => {
+      if (isNavState(e.state) && e.state.page) {
+        setCurrentPage(e.state.page);
+        setSelectedBidId(e.state.bidId);
+        setMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
+  const navigateTo = (page: Page, bidId?: number, replace: boolean = false) => {
+    const next: NavState = { page, bidId };
+
+    if (replace) window.history.replaceState(next, "");
+    else window.history.pushState(next, "");
+
+    setCurrentPage(page);
+    setSelectedBidId(bidId);
+    setMobileMenuOpen(false);
+  };
+
   const handleLogin = (email: string) => {
     setIsAuthenticated(true);
     setUserEmail(email);
-    setCurrentPage("dashboard");
+    // 로그인 후에는 login 히스토리를 dashboard로 "대체"해서 back이 login으로 가지 않게 함(권장 UX)
+    navigateTo("dashboard", undefined, true);
     toast.success("로그인되었습니다");
   };
 
   const handleSignup = (email: string) => {
     setIsAuthenticated(true);
     setUserEmail(email);
-    setCurrentPage("dashboard");
+    navigateTo("dashboard", undefined, true);
     toast.success("회원가입이 완료되었습니다");
   };
 
   const handleLogout = () => {
     setIsAuthenticated(false);
     setUserEmail("");
-    setCurrentPage("login");
     setCartItems([]);
+    setSelectedBidId(undefined);
+
+    // 로그아웃 시 현재 엔트리를 login으로 대체
+    navigateTo("login", undefined, true);
     toast.info("로그아웃되었습니다");
   };
 
-  // const handleNavigate = (page: Page, bidId?: number) => {
-  //   setCurrentPage(page,bidId);
-  //   if (bidId !== undefined) {
-  //     setSelectedBidId(bidId);
-  //   }
-  //   setMobileMenuOpen(false);
-  // };
-    const handleNavigate = (page: Page, bidId?: number) => {
-        setCurrentPage(page);
-        if (bidId !== undefined) {
-            setSelectedBidId(bidId);
-        }
-    };
+  const handleNavigate = (page: Page, bidId?: number) => {
+    navigateTo(page, bidId, false);
+  };
 
   const handleAddToCart = (bidId: number) => {
     if (!cartItems.includes(bidId)) {
@@ -84,15 +118,26 @@ export default function App() {
   };
 
   const handleRemoveFromCart = (bidId: number) => {
-    setCartItems(cartItems.filter(id => id !== bidId));
+    setCartItems(cartItems.filter((id) => id !== bidId));
     toast.success("장바구니에서 제거되었습니다");
   };
 
+  // ---- Auth pages ----
   if (!isAuthenticated) {
     if (currentPage === "signup") {
-      return <SignupPage onSignup={handleSignup} onNavigateToLogin={() => setCurrentPage("login")} />;
+      return (
+        <SignupPage
+          onSignup={handleSignup}
+          onNavigateToLogin={() => navigateTo("login")}
+        />
+      );
     }
-    return <LoginPage onLogin={handleLogin} onNavigateToSignup={() => setCurrentPage("signup")} />;
+    return (
+      <LoginPage
+        onLogin={handleLogin}
+        onNavigateToSignup={() => navigateTo("signup")}
+      />
+    );
   }
 
   const menuItems = [
@@ -108,7 +153,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Toaster position="top-right" />
-      
+
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -119,7 +164,9 @@ export default function App() {
               </div>
               <div>
                 <h1 className="text-xl font-bold">입찰 인텔리전스</h1>
-                <p className="text-xs text-muted-foreground hidden sm:block">Smart Procurement Platform</p>
+                <p className="text-xs text-muted-foreground hidden sm:block">
+                  Smart Procurement Platform
+                </p>
               </div>
             </div>
 
@@ -199,20 +246,20 @@ export default function App() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {currentPage === "dashboard" && <Dashboard
-            onNavigate={handleNavigate}
-            cart={cartItems}
-        />
-        }
+        {currentPage === "dashboard" && (
+          <Dashboard onNavigate={handleNavigate} cart={cartItems} />
+        )}
         {currentPage === "bids" && (
           <BidDiscovery onNavigate={handleNavigate} onAddToCart={handleAddToCart} />
         )}
         {currentPage === "analytics" && <AnalyticsReport />}
-        {currentPage === "summary" && <BidSummary bidId={selectedBidId} onNavigate={handleNavigate} />}
+        {currentPage === "summary" && (
+          <BidSummary bidId={selectedBidId} onNavigate={handleNavigate} />
+        )}
         {currentPage === "cart" && (
-          <CartPage 
-            cartItems={cartItems} 
-            onRemoveFromCart={handleRemoveFromCart} 
+          <CartPage
+            cartItems={cartItems}
+            onRemoveFromCart={handleRemoveFromCart}
             onNavigate={handleNavigate}
           />
         )}
@@ -225,9 +272,7 @@ export default function App() {
       <footer className="bg-white border-t mt-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-muted-foreground">
-              © 2026 입찰 인텔리전스. All rights reserved.
-            </p>
+            <p className="text-sm text-muted-foreground">© 2026 입찰 인텔리전스. All rights reserved.</p>
             <div className="flex gap-4 text-sm text-muted-foreground">
               <a href="#" className="hover:text-blue-600">이용약관</a>
               <a href="#" className="hover:text-blue-600">개인정보처리방침</a>

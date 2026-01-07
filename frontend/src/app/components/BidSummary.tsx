@@ -57,8 +57,12 @@ export function BidSummary({ bidId, onNavigate }: BidSummaryProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="outline" size="sm" onClick={() => onNavigate("bids")}>
-          <ArrowLeft className="h-4 w-4 mr-1" />
+        <Button variant="outline" size="sm" onClick={() => window.history.back()}>
+        <ArrowLeft className="h-4 w-4 mr-1" />
+        뒤로가기
+        </Button>
+
+        <Button variant="ghost" size="sm" onClick={() => onNavigate("bids")}>
           목록으로
         </Button>
       </div>
