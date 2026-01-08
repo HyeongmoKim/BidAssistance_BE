@@ -121,7 +121,7 @@ export function NotificationsPage({
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => onNavigate("profile")}>
+          <Button variant="outline" onClick={() => {localStorage.setItem("profile.activeTab", "notifications"); onNavigate("profile");}}>
             <Settings className="h-4 w-4 mr-2" />
             알림 설정
           </Button>

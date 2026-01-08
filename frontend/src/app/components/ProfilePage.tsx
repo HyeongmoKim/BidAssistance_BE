@@ -1,9 +1,9 @@
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Avatar, AvatarFallback } from "./ui/avatar";
-import { User, Building, Mail, Phone, MapPin, Bell, Shield, CreditCard } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Switch } from "./ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
@@ -14,7 +14,34 @@ interface ProfilePageProps {
   userEmail: string;
 }
 
+type ProfileTab = "info" | "company" | "notifications" | "subscription";
+
+const PROFILE_TAB_STORAGE_KEY = "profile.activeTab";
+
+function readInitialTab(): ProfileTab {
+  const v = localStorage.getItem(PROFILE_TAB_STORAGE_KEY);
+  if (v === "info" || v === "company" || v === "notifications" || v === "subscription") return v;
+  return "info";
+}
+
 export function ProfilePage({ userEmail }: ProfilePageProps) {
+  const [activeTab, setActiveTab] = useState<ProfileTab>(() => readInitialTab());
+
+  useEffect(() => {
+    localStorage.setItem(PROFILE_TAB_STORAGE_KEY, activeTab);
+  }, [activeTab]);
+
+  // “검은 박스” 탭 스타일
+  const tabTriggerClass = useMemo(() => {
+    return [
+      "px-4 py-2 rounded-md",
+      "data-[state=active]:bg-black data-[state=active]:text-white",
+      "data-[state=active]:shadow-sm",
+      "data-[state=inactive]:bg-transparent data-[state=inactive]:text-muted-foreground",
+      "hover:text-foreground",
+    ].join(" ");
+  }, []);
+
   return (
     <div className="space-y-6">
       <div>
@@ -45,12 +72,20 @@ export function ProfilePage({ userEmail }: ProfilePageProps) {
       </Card>
 
       {/* Tabs */}
-      <Tabs defaultValue="info" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="info">계정 정보</TabsTrigger>
-          <TabsTrigger value="company">회사 정보</TabsTrigger>
-          <TabsTrigger value="notifications">알림 설정</TabsTrigger>
-          <TabsTrigger value="subscription">구독 관리</TabsTrigger>
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ProfileTab)} className="space-y-4">
+        <TabsList className="bg-transparent p-0 gap-2">
+          <TabsTrigger value="info" className={tabTriggerClass}>
+            계정 정보
+          </TabsTrigger>
+          <TabsTrigger value="company" className={tabTriggerClass}>
+            회사 정보
+          </TabsTrigger>
+          <TabsTrigger value="notifications" className={tabTriggerClass}>
+            알림 설정
+          </TabsTrigger>
+          <TabsTrigger value="subscription" className={tabTriggerClass}>
+            구독 관리
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="info" className="space-y-4">
@@ -154,34 +189,6 @@ export function ProfilePage({ userEmail }: ProfilePageProps) {
               </div>
             </CardContent>
           </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>자격 및 인증</CardTitle>
-              <CardDescription>보유 중인 자격증과 인증서를 관리합니다</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <p className="font-semibold">건설업 면허 (토목공사업)</p>
-                    <p className="text-sm text-muted-foreground">유효기간: 2027-12-31</p>
-                  </div>
-                  <Badge variant="outline">등록됨</Badge>
-                </div>
-                <div className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <p className="font-semibold">ISO 9001 인증</p>
-                    <p className="text-sm text-muted-foreground">유효기간: 2026-06-30</p>
-                  </div>
-                  <Badge variant="outline">등록됨</Badge>
-                </div>
-                <Button variant="outline" className="w-full">
-                  + 인증서 추가
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
 
         <TabsContent value="notifications" className="space-y-4">
@@ -234,10 +241,18 @@ export function ProfilePage({ userEmail }: ProfilePageProps) {
                   <div className="flex flex-wrap gap-2">
                     <Badge variant="default">서울</Badge>
                     <Badge variant="default">경기</Badge>
-                    <Badge variant="outline" className="cursor-pointer">인천</Badge>
-                    <Badge variant="outline" className="cursor-pointer">부산</Badge>
-                    <Badge variant="outline" className="cursor-pointer">대전</Badge>
-                    <Badge variant="outline" className="cursor-pointer">광주</Badge>
+                    <Badge variant="outline" className="cursor-pointer">
+                      인천
+                    </Badge>
+                    <Badge variant="outline" className="cursor-pointer">
+                      부산
+                    </Badge>
+                    <Badge variant="outline" className="cursor-pointer">
+                      대전
+                    </Badge>
+                    <Badge variant="outline" className="cursor-pointer">
+                      광주
+                    </Badge>
                   </div>
                 </div>
               </div>
@@ -251,9 +266,15 @@ export function ProfilePage({ userEmail }: ProfilePageProps) {
                   <div className="flex flex-wrap gap-2">
                     <Badge variant="default">10억 이하</Badge>
                     <Badge variant="default">10-30억</Badge>
-                    <Badge variant="outline" className="cursor-pointer">30-50억</Badge>
-                    <Badge variant="outline" className="cursor-pointer">50-100억</Badge>
-                    <Badge variant="outline" className="cursor-pointer">100억 이상</Badge>
+                    <Badge variant="outline" className="cursor-pointer">
+                      30-50억
+                    </Badge>
+                    <Badge variant="outline" className="cursor-pointer">
+                      50-100억
+                    </Badge>
+                    <Badge variant="outline" className="cursor-pointer">
+                      100억 이상
+                    </Badge>
                   </div>
                 </div>
               </div>
@@ -283,39 +304,13 @@ export function ProfilePage({ userEmail }: ProfilePageProps) {
                 <p className="text-sm text-muted-foreground">다음 결제일: 2026-02-06</p>
               </div>
 
-              <div className="space-y-3 mb-6">
-                <h4 className="font-semibold">포함된 기능</h4>
-                <ul className="space-y-2">
-                  <li className="flex items-start gap-2 text-sm">
-                    <span className="text-green-600">✓</span>
-                    <span>무제한 공고 검색 및 필터링</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-sm">
-                    <span className="text-green-600">✓</span>
-                    <span>AI 기반 공고 요약 및 분석</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-sm">
-                    <span className="text-green-600">✓</span>
-                    <span>낙찰률 분석 및 리포트</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-sm">
-                    <span className="text-green-600">✓</span>
-                    <span>실시간 알림 (이메일/SMS)</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-sm">
-                    <span className="text-green-600">✓</span>
-                    <span>투찰가 가이드 제공</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-sm">
-                    <span className="text-green-600">✓</span>
-                    <span>우선 고객 지원</span>
-                  </li>
-                </ul>
-              </div>
-
               <div className="flex gap-3">
-                <Button variant="outline" className="flex-1">플랜 변경</Button>
-                <Button variant="outline" className="flex-1">결제 내역</Button>
+                <Button variant="outline" className="flex-1">
+                  플랜 변경
+                </Button>
+                <Button variant="outline" className="flex-1">
+                  결제 내역
+                </Button>
               </div>
             </CardContent>
           </Card>
