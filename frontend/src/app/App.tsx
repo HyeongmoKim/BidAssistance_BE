@@ -7,9 +7,9 @@ import { BidDiscovery } from "./components/BidDiscovery";
 import { BidSummary } from "./components/BidSummary";
 import { CartPage } from "./components/CartPage";
 import { NotificationsPage, type NotificationItem } from "./components/NotificationsPage";
+import { NoticePage } from "./components/NoticePage";
 import { ChatbotPage } from "./components/ChatbotPage";
 import { ProfilePage } from "./components/ProfilePage";
-import { NoticePage } from "./components/NoticePage";
 
 import { Button } from "./components/ui/button";
 import { Badge } from "./components/ui/badge";
@@ -39,7 +39,7 @@ import {FindAccountPage} from "./components/FindAccount";
 
 /**
  * 중요:
- * Page 타입에 "home"이 포함되어 있어야 합니다.
+ * Page 타입에 "notice"가 포함되어 있어야 합니다.
  */
 type NavState = { page: Page; bidId?: number };
 
@@ -50,7 +50,7 @@ function isNavState(v: unknown): v is NavState {
 }
 
 function isPublicPage(page: Page) {
-  return page === "home" || page === "login" || page === "signup" || page === "findAccount" || page === "resetPassword";
+  return page === "home" || page === "login" || page === "signup" || page === "notice"|| page === "findAccount" || page === "resetPassword";
 }
 
 /** 챗봇 모달 */
@@ -123,7 +123,6 @@ function HomeContent({
   onNavigate,
   onGoLogin,
   onGoSignup,
-  onLogout,
   onOpenChatbot,
 }: {
   isAuthenticated: boolean;
@@ -132,7 +131,6 @@ function HomeContent({
   onNavigate: (page: Page) => void;
   onGoLogin: () => void;
   onGoSignup: () => void;
-  onLogout: () => void;
   onOpenChatbot: () => void;
 }) {
   const [query, setQuery] = useState("");
@@ -152,16 +150,16 @@ function HomeContent({
     <div className="grid grid-cols-12 gap-6">
       {/* 중앙(넓게) */}
       <div className="col-span-12 lg:col-span-9 space-y-6">
-        {/* 퀵 링크 박스들 (파스텔 노란색) */}
+        {/* 퀵 링크 박스들 (파스텔톤 하늘색) */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {quickLinks.map((x) => {
             const Icon = x.icon;
             return (
               <button key={x.id} onClick={() => onNavigate(x.id)} className="text-left">
-                <Card className="bg-amber-50 border-amber-200 hover:bg-amber-100/60 transition">
+                <Card className="bg-sky-50 border-sky-200 hover:bg-sky-100/60 transition">
                   <CardContent className="p-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-md bg-amber-100 flex items-center justify-center">
+                      <div className="h-9 w-9 rounded-md bg-sky-100 flex items-center justify-center">
                         <Icon className="h-4 w-4" />
                       </div>
                       <div className="font-medium">{x.label}</div>
@@ -174,8 +172,8 @@ function HomeContent({
           })}
         </div>
 
-        {/* AI 검색 패널 (파스텔 노란색) */}
-        <Card className="bg-amber-50 border-amber-200">
+        {/* AI 검색 패널 (파스텔톤 하늘색) */}
+        <Card className="bg-sky-50 border-sky-200">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5" />
@@ -225,7 +223,7 @@ function HomeContent({
       <div className="col-span-12 lg:col-span-3">
         <div className="lg:max-w-xs lg:ml-auto">
           {!isAuthenticated ? (
-            <Card className="bg-amber-50 border-amber-200">
+            <Card className="bg-sky-50 border-sky-200">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">로그인</CardTitle>
                 <CardDescription className="text-sm">
@@ -242,7 +240,7 @@ function HomeContent({
               </CardContent>
             </Card>
           ) : (
-            <Card className="bg-amber-50 border-amber-200">
+            <Card className="bg-sky-50 border-sky-200">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">회원 정보</CardTitle>
                 <CardDescription className="text-sm">현재 로그인된 계정 정보입니다.</CardDescription>
@@ -273,7 +271,7 @@ export default function App() {
   const [selectedBidId, setSelectedBidId] = useState<number | undefined>();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // 알림 데이터/읽음 처리 (빈페이지 이슈 해결 핵심)
+  // 알림 데이터/읽음 처리
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
   const unreadCount = useMemo(
@@ -344,7 +342,7 @@ export default function App() {
     return () => window.removeEventListener("popstate", onPopState);
   }, [isAuthenticated]);
 
-  // 로그인/회원가입: home에 그대로 유지
+  // 로그인/회원가입: home 유지
   const handleLogin = (email: string) => {
     setIsAuthenticated(true);
     setUserEmail(email);
@@ -352,17 +350,14 @@ export default function App() {
     toast.success("로그인되었습니다");
   };
 
-    const handleSignup = (email: string) => {
-        setIsAuthenticated(false);
-        setUserEmail(""); // 혹은 email을 미리 채우고 싶으면 setUserEmail(email) 해도 됨
+  const handleSignup = (email: string) => {
+    setIsAuthenticated(true);
+    setUserEmail(email);
+    navigateTo("home", undefined, true);
+    toast.success("회원가입이 완료되었습니다");
+  };
 
-        navigateTo("login", undefined, true);
-
-        toast.success("회원가입이 완료되었습니다. 로그인해 주세요.");
-    };
-
-
-  // 로그아웃: home에 그대로 유지
+  // 로그아웃: home 유지
   const handleLogout = () => {
     setIsAuthenticated(false);
     setUserEmail("");
@@ -380,7 +375,7 @@ export default function App() {
       return;
     }
 
-    // 비로그인: home/login/signup만 허용
+    // 비로그인: home/login/signup/notice만 허용
     if (!isAuthenticated && !isPublicPage(page)) {
       toast.info("로그인이 필요합니다.");
       navigateTo("login", undefined, true);
@@ -416,7 +411,8 @@ export default function App() {
   );
 
   // -------------------------
-  // 비로그인: login/signup은 기존 그대로, home은 노출
+  // 비로그인: login/signup은 기존 그대로
+  // home/notice는 열람 가능
   // -------------------------
   if (!isAuthenticated) {
     if (currentPage === "signup") {
@@ -530,16 +526,19 @@ export default function App() {
         </header>
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <HomeContent
-            isAuthenticated={false}
-            userEmail=""
-            cartCount={0}
-            onNavigate={(p) => handleNavigate(p)}
-            onGoLogin={() => navigateTo("login")}
-            onGoSignup={() => navigateTo("signup")}
-            onLogout={() => undefined}
-            onOpenChatbot={() => setChatbotOpen(true)}
-          />
+          {currentPage === "home" && (
+            <HomeContent
+              isAuthenticated={false}
+              userEmail=""
+              cartCount={0}
+              onNavigate={(p) => handleNavigate(p)}
+              onGoLogin={() => navigateTo("login")}
+              onGoSignup={() => navigateTo("signup")}
+              onOpenChatbot={() => setChatbotOpen(true)}
+            />
+          )}
+
+          {currentPage === "notice" && <NoticePage onNavigate={handleNavigate} canWrite={false} />}
         </main>
 
         <footer className="bg-white border-t mt-12">
@@ -694,7 +693,6 @@ export default function App() {
         {mobileMenuOpen && (
           <div className="lg:hidden border-t bg-white">
             <nav className="px-4 py-2 space-y-1">
-              {/* 모바일에서도 4개 + 알림/공지 + 로그아웃 제공 */}
               <Button
                 variant={currentPage === "dashboard" ? "default" : "ghost"}
                 className="w-full justify-start"
@@ -737,7 +735,7 @@ export default function App() {
               </Button>
 
               <Button
-                variant="ghost"
+                variant={currentPage === "notice" ? "default" : "ghost"}
                 className="w-full justify-start"
                 onClick={() => handleNavigate("notice")}
               >
@@ -778,18 +776,17 @@ export default function App() {
             onNavigate={(p) => handleNavigate(p)}
             onGoLogin={() => navigateTo("login")}
             onGoSignup={() => navigateTo("signup")}
-            onLogout={handleLogout}
             onOpenChatbot={() => setChatbotOpen(true)}
           />
         )}
+
+        {currentPage === "notice" && <NoticePage onNavigate={handleNavigate} canWrite={true} />}
 
         {currentPage === "dashboard" && <Dashboard onNavigate={handleNavigate} cart={cartItems} />}
 
         {currentPage === "bids" && (
           <BidDiscovery onNavigate={handleNavigate} onAddToCart={handleAddToCart} />
         )}
-
-        {/*{currentPage === "analytics" && <AnalyticsReport />}*/}
 
         {currentPage === "summary" && <BidSummary bidId={selectedBidId} onNavigate={handleNavigate} />}
 
@@ -811,8 +808,6 @@ export default function App() {
         )}
 
         {currentPage === "profile" && <ProfilePage userEmail={userEmail} />}
-        {currentPage === "notice" && <NoticePage onNavigate={handleNavigate} />}
-
       </main>
 
       {/* Footer */}
