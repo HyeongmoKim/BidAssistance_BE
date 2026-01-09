@@ -350,12 +350,15 @@ export default function App() {
     toast.success("로그인되었습니다");
   };
 
-  const handleSignup = (email: string) => {
-    setIsAuthenticated(true);
-    setUserEmail(email);
-    navigateTo("home", undefined, true);
-    toast.success("회원가입이 완료되었습니다");
-  };
+    const handleSignup = (email: string) => {
+        setIsAuthenticated(false);
+        setUserEmail(""); // 혹은 email을 미리 채우고 싶으면 setUserEmail(email) 해도 됨
+
+        navigateTo("login", undefined, true);
+
+        toast.success("회원가입이 완료되었습니다. 로그인해 주세요.");
+    };
+
 
   // 로그아웃: home에 그대로 유지
   const handleLogout = () => {
