@@ -5,12 +5,13 @@ import { Label } from "./ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card";
 import { Building2 } from "lucide-react";
 
-interface LoginPageProps {
+export interface LoginPageProps {
     onLogin: (email: string) => void;
     onNavigateToSignup: () => void;
-    onNavigateToFindAccount: () => void;
-    onNavigateToResetPassword: () => void;
+    onNavigateToFindAccount?: () => void;
+    onNavigateToResetPassword?: () => void;
 }
+
 
 
 

@@ -3,12 +3,13 @@ import { LoginPage } from "./components/LoginPage";
 import { SignupPage } from "./components/SignupPage";
 import { Dashboard } from "./components/Dashboard";
 import { BidDiscovery } from "./components/BidDiscovery";
-import { AnalyticsReport } from "./components/AnalyticsReport";
+// import { AnalyticsReport } from "./components/AnalyticsReport";
 import { BidSummary } from "./components/BidSummary";
 import { CartPage } from "./components/CartPage";
 import { NotificationsPage, type NotificationItem } from "./components/NotificationsPage";
 import { ChatbotPage } from "./components/ChatbotPage";
 import { ProfilePage } from "./components/ProfilePage";
+import { NoticePage } from "./components/NoticePage";
 
 import { Button } from "./components/ui/button";
 import { Badge } from "./components/ui/badge";
@@ -461,7 +462,7 @@ export default function App() {
                   variant="outline"
                   size="sm"
                   className="gap-2"
-                  onClick={() => toast.info("공지사항은 준비 중입니다.")}
+                  onClick={() => handleNavigate("notice")}
                 >
                   <Megaphone className="h-4 w-4" />
                   공지사항
@@ -608,7 +609,7 @@ export default function App() {
                 variant="outline"
                 size="sm"
                 className="gap-2 hidden sm:flex"
-                onClick={() => toast.info("공지사항은 준비 중입니다.")}
+                onClick={() => handleNavigate("notice")}
               >
                 <Megaphone className="h-4 w-4" />
                 공지사항
@@ -696,7 +697,7 @@ export default function App() {
               <Button
                 variant="ghost"
                 className="w-full justify-start"
-                onClick={() => toast.info("공지사항은 준비 중입니다.")}
+                onClick={() => handleNavigate("notice")}
               >
                 <Megaphone className="h-4 w-4 mr-3" />
                 공지사항
@@ -746,7 +747,7 @@ export default function App() {
           <BidDiscovery onNavigate={handleNavigate} onAddToCart={handleAddToCart} />
         )}
 
-        {currentPage === "analytics" && <AnalyticsReport />}
+        {/*{currentPage === "analytics" && <AnalyticsReport />}*/}
 
         {currentPage === "summary" && <BidSummary bidId={selectedBidId} onNavigate={handleNavigate} />}
 
@@ -768,6 +769,8 @@ export default function App() {
         )}
 
         {currentPage === "profile" && <ProfilePage userEmail={userEmail} />}
+        {currentPage === "notice" && <NoticePage onNavigate={handleNavigate} />}
+
       </main>
 
       {/* Footer */}

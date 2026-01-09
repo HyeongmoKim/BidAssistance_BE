@@ -4,7 +4,7 @@ export type Page =
     | "signup"
     | "dashboard"
     | "findAccount"
-    | "notices"
+    | "notice"
     | "resetPassword"
     | "bids"
     | "analytics"
