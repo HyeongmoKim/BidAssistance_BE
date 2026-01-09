@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { LoginPage } from "./components/LoginPage";
 import { SignupPage } from "./components/SignupPage";
 import { Dashboard } from "./components/Dashboard";
 import { BidDiscovery } from "./components/BidDiscovery";
-import { AnalyticsReport } from "./components/AnalyticsReport";
 import { BidSummary } from "./components/BidSummary";
 import { CartPage } from "./components/CartPage";
 import { NotificationsPage, type NotificationItem } from "./components/NotificationsPage";
@@ -148,16 +147,16 @@ function HomeContent({
     <div className="grid grid-cols-12 gap-6">
       {/* 중앙(넓게) */}
       <div className="col-span-12 lg:col-span-9 space-y-6">
-        {/* 퀵 링크 박스들 (파스텔 노란색) */}
+        {/* 퀵 링크 박스들 (파스텔톤 하늘색) */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {quickLinks.map((x) => {
             const Icon = x.icon;
             return (
               <button key={x.id} onClick={() => onNavigate(x.id)} className="text-left">
-                <Card className="bg-amber-50 border-amber-200 hover:bg-amber-100/60 transition">
+                <Card className="bg-sky-50 border-sky-200 hover:bg-sky-100/60 transition">
                   <CardContent className="p-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-md bg-amber-100 flex items-center justify-center">
+                      <div className="h-9 w-9 rounded-md bg-sky-100 flex items-center justify-center">
                         <Icon className="h-4 w-4" />
                       </div>
                       <div className="font-medium">{x.label}</div>
@@ -170,8 +169,8 @@ function HomeContent({
           })}
         </div>
 
-        {/* AI 검색 패널 (파스텔 노란색) */}
-        <Card className="bg-amber-50 border-amber-200">
+        {/* AI 검색 패널 (파스텔톤 하늘색) */}
+        <Card className="bg-sky-50 border-sky-200">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5" />
@@ -221,7 +220,7 @@ function HomeContent({
       <div className="col-span-12 lg:col-span-3">
         <div className="lg:max-w-xs lg:ml-auto">
           {!isAuthenticated ? (
-            <Card className="bg-amber-50 border-amber-200">
+            <Card className="bg-sky-50 border-sky-200">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">로그인</CardTitle>
                 <CardDescription className="text-sm">
@@ -238,7 +237,7 @@ function HomeContent({
               </CardContent>
             </Card>
           ) : (
-            <Card className="bg-amber-50 border-amber-200">
+            <Card className="bg-sky-50 border-sky-200">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">회원 정보</CardTitle>
                 <CardDescription className="text-sm">현재 로그인된 계정 정보입니다.</CardDescription>
@@ -269,7 +268,7 @@ export default function App() {
   const [selectedBidId, setSelectedBidId] = useState<number | undefined>();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // 알림 데이터/읽음 처리 (빈페이지 이슈 해결 핵심)
+  // 알림 데이터/읽음 처리
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
   const unreadCount = useMemo(
@@ -340,7 +339,7 @@ export default function App() {
     return () => window.removeEventListener("popstate", onPopState);
   }, [isAuthenticated]);
 
-  // 로그인/회원가입: home에 그대로 유지
+  // 로그인/회원가입: home 유지
   const handleLogin = (email: string) => {
     setIsAuthenticated(true);
     setUserEmail(email);
@@ -355,7 +354,7 @@ export default function App() {
     toast.success("회원가입이 완료되었습니다");
   };
 
-  // 로그아웃: home에 그대로 유지
+  // 로그아웃: home 유지
   const handleLogout = () => {
     setIsAuthenticated(false);
     setUserEmail("");
@@ -653,7 +652,6 @@ export default function App() {
         {mobileMenuOpen && (
           <div className="lg:hidden border-t bg-white">
             <nav className="px-4 py-2 space-y-1">
-              {/* 모바일에서도 4개 + 공지/알림 + 로그아웃 제공 */}
               <Button
                 variant={currentPage === "dashboard" ? "default" : "ghost"}
                 className="w-full justify-start"
@@ -748,8 +746,6 @@ export default function App() {
         {currentPage === "bids" && (
           <BidDiscovery onNavigate={handleNavigate} onAddToCart={handleAddToCart} />
         )}
-
-        {currentPage === "analytics" && <AnalyticsReport />}
 
         {currentPage === "summary" && <BidSummary bidId={selectedBidId} onNavigate={handleNavigate} />}
 
