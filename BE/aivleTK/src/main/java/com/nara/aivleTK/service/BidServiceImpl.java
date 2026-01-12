@@ -1,0 +1,47 @@
+package com.nara.aivleTK.service;
+
+import com.nara.aivleTK.domain.Bid;
+import com.nara.aivleTK.dto.BidResponse;
+import com.nara.aivleTK.exception.ResourceNotFoundException;
+import com.nara.aivleTK.repository.BidRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class BidServiceImpl implements BidService {
+
+    private final BidRepository bidRepository;
+
+    @Override
+    public List<BidResponse> searchBid(String keyword) {
+        List<Bid> result = bidRepository.findByNameContainingOrOrganizationContainingOrRegionContaining(keyword, keyword, keyword);
+        return result.stream()
+                .map(BidResponse::new)
+                .collect(Collectors.toList());
+
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BidResponse> getAllBid() {
+        return bidRepository.findAll()
+                .stream()
+                .map(BidResponse::new)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public BidResponse getBidById(long id) {
+
+        Bid bid = bidRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Bid not Found. id =" + id));
+        return new BidResponse(bid);
+    }
+}
