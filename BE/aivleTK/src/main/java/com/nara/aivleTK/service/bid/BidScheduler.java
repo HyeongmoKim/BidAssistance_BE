@@ -1,4 +1,4 @@
-package com.nara.aivleTK.service;
+package com.nara.aivleTK.service.bid;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

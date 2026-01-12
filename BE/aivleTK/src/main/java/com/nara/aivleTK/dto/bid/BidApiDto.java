@@ -1,4 +1,4 @@
-package com.nara.aivleTK.dto;
+package com.nara.aivleTK.dto.bid;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

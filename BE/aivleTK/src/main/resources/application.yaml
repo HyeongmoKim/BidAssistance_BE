@@ -20,7 +20,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate # mysql 연결 확인만 생성X
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:

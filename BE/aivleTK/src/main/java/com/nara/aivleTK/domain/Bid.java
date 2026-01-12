@@ -17,7 +17,7 @@ public class Bid {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column
-    private Long bidId;
+    private int bidId;
     @Column
     private String bidRealId;
     @Column

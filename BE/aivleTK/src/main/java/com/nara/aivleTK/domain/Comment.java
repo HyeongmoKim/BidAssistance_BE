@@ -1,5 +1,6 @@
 package com.nara.aivleTK.domain;
 
+import com.nara.aivleTK.domain.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,7 +19,7 @@ public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="comment_id")
-    private Long commentId;
+    private Integer commentId;
 
     @Column(name="comment_content", columnDefinition = "TEXT", nullable = false)
     private String commentContent;
@@ -40,4 +41,3 @@ public class Comment {
     }
 }
 
-}

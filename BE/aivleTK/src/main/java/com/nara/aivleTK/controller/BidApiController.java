@@ -1,6 +1,6 @@
 package com.nara.aivleTK.controller;
 
-import com.nara.aivleTK.service.BidApiService;
+import com.nara.aivleTK.service.bid.BidApiService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;

@@ -1,4 +1,4 @@
-package com.nara.aivleTK.dto;
+package com.nara.aivleTK.dto.bid;
 
 import com.nara.aivleTK.domain.Bid;
 import lombok.Getter;
@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor
 public class BidResponse {
-    private Long id;
+    private int id;
     private String realId;
     private String name;
     private LocalDateTime startDate;

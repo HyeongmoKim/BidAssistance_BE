@@ -1,4 +1,4 @@
-package com.nara.aivleTK.service;
+package com.nara.aivleTK.service.bid;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -1,4 +1,4 @@
-package com.nara.aivleTK.service;
+package com.nara.aivleTK.service.bid;
 
 import com.nara.aivleTK.domain.Bid;
 import com.nara.aivleTK.dto.bid.BidResponse;
@@ -19,8 +19,8 @@ public class BidServiceImpl implements BidService {
     private final BidRepository bidRepository;
 
     @Override
-    public List<BidResponse> searchBid(String keyword) {
-        List<Bid> result = bidRepository.findByNameContainingOrOrganizationContainingOrRegionContaining(keyword, keyword, keyword);
+    public List<BidResponse> searchBid(String name, String region, String organization) {
+        List<Bid> result = bidRepository.findByNameContainingOrOrganizationContainingOrRegionContaining(name, region, organization);
         return result.stream()
                 .map(BidResponse::new)
                 .collect(Collectors.toList());
