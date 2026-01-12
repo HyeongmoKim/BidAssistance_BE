@@ -1,7 +1,7 @@
 package com.nara.aivleTK.service;
 
 import com.nara.aivleTK.domain.Bid;
-import com.nara.aivleTK.dto.BidResponse;
+import com.nara.aivleTK.dto.bid.BidResponse;
 import com.nara.aivleTK.exception.ResourceNotFoundException;
 import com.nara.aivleTK.repository.BidRepository;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +38,7 @@ public class BidServiceImpl implements BidService {
 
     @Override
     @Transactional(readOnly = true)
-    public BidResponse getBidById(long id) {
+    public BidResponse getBidById(int id) {
 
         Bid bid = bidRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Bid not Found. id =" + id));

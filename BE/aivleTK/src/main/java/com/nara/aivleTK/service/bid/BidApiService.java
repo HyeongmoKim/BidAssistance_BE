@@ -3,7 +3,7 @@ package com.nara.aivleTK.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nara.aivleTK.domain.Bid;
-import com.nara.aivleTK.dto.BidApiDto;
+import com.nara.aivleTK.dto.bid.BidApiDto;
 import com.nara.aivleTK.repository.BidRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
