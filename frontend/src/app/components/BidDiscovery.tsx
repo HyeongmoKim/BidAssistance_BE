@@ -18,15 +18,28 @@ import {
 import { Label } from "./ui/label";
 import { Slider } from "./ui/slider";
 import type { Page } from "../../types/navigation";
-
+export type Bid = {
+    id: number;
+    title: string;
+    agency: string;
+    region: string;
+    budget: string;
+    budgetValue: number;
+    deadline: string;
+    type: string;
+    status: string;
+    announcementDate: string;
+};
 interface BidDiscoveryProps {
 	onNavigate: (page: Page, bidId?: number) => void;
 	onAddToCart: (bidId: number) => void;
+    bids: Bid[];
+
 }
 
 type SortOption = "latest" | "deadline";
 
-export function BidDiscovery({ onNavigate, onAddToCart }: BidDiscoveryProps) {
+export function BidDiscovery({ onNavigate, onAddToCart, bids }: BidDiscoveryProps) {
 	const [searchQuery, setSearchQuery] = useState("");
 
 	const [selectedRegion, setSelectedRegion] = useState<"ALL" | string>("ALL");
@@ -38,81 +51,81 @@ export function BidDiscovery({ onNavigate, onAddToCart }: BidDiscoveryProps) {
 	// 추가: 정렬 옵션
 	const [sortOption, setSortOption] = useState<SortOption>("latest");
 
-	// Mock data
-	const bids = [
-		{
-			id: 1,
-			title: "서울시 강남구 도로 보수공사",
-			agency: "서울특별시 강남구청",
-			region: "서울",
-			budget: "35억 원",
-			budgetValue: 35,
-			deadline: "2026-01-08",
-			type: "공사",
-			status: "진행중",
-			announcementDate: "2025-12-15",
-		},
-		{
-			id: 2,
-			title: "경기도 성남시 공공건물 신축공사",
-			agency: "경기도 성남시청",
-			region: "경기",
-			budget: "87억 원",
-			budgetValue: 87,
-			deadline: "2026-01-15",
-			type: "공사",
-			status: "진행중",
-			announcementDate: "2025-12-18",
-		},
-		{
-			id: 3,
-			title: "인천광역시 연수구 학교시설 개선공사",
-			agency: "인천광역시 교육청",
-			region: "인천",
-			budget: "12억 원",
-			budgetValue: 12,
-			deadline: "2026-01-10",
-			type: "공사",
-			status: "진행중",
-			announcementDate: "2025-12-20",
-		},
-		{
-			id: 4,
-			title: "부산시 해운대구 주차장 건설",
-			agency: "부산광역시 해운대구청",
-			region: "부산",
-			budget: "23억 원",
-			budgetValue: 23,
-			deadline: "2026-01-12",
-			type: "공사",
-			status: "진행중",
-			announcementDate: "2025-12-22",
-		},
-		{
-			id: 5,
-			title: "대전시 유성구 복지센터 리모델링",
-			agency: "대전광역시 유성구청",
-			region: "대전",
-			budget: "8억 원",
-			budgetValue: 8,
-			deadline: "2026-01-20",
-			type: "공사",
-			status: "진행중",
-			announcementDate: "2025-12-25",
-		},
-		{
-			id: 6,
-			title: "광주시 광산구 문화체육시설 신축",
-			agency: "광주광역시 광산구청",
-			region: "광주",
-			budget: "45억 원",
-			budgetValue: 45,
-			deadline: "2026-01-18",
-			type: "공사",
-			status: "진행중",
-			announcementDate: "2025-12-28",
-		},
-	];
+	// // Mock data
+	// const bids = [
+	// 	{
+	// 		id: 1,
+	// 		title: "서울시 강남구 도로 보수공사",
+	// 		agency: "서울특별시 강남구청",
+	// 		region: "서울",
+	// 		budget: "35억 원",
+	// 		budgetValue: 35,
+	// 		deadline: "2026-01-08",
+	// 		type: "공사",
+	// 		status: "진행중",
+	// 		announcementDate: "2025-12-15",
+	// 	},
+	// 	{
+	// 		id: 2,
+	// 		title: "경기도 성남시 공공건물 신축공사",
+	// 		agency: "경기도 성남시청",
+	// 		region: "경기",
+	// 		budget: "87억 원",
+	// 		budgetValue: 87,
+	// 		deadline: "2026-01-15",
+	// 		type: "공사",
+	// 		status: "진행중",
+	// 		announcementDate: "2025-12-18",
+	// 	},
+	// 	{
+	// 		id: 3,
+	// 		title: "인천광역시 연수구 학교시설 개선공사",
+	// 		agency: "인천광역시 교육청",
+	// 		region: "인천",
+	// 		budget: "12억 원",
+	// 		budgetValue: 12,
+	// 		deadline: "2026-01-10",
+	// 		type: "공사",
+	// 		status: "진행중",
+	// 		announcementDate: "2025-12-20",
+	// 	},
+	// 	{
+	// 		id: 4,
+	// 		title: "부산시 해운대구 주차장 건설",
+	// 		agency: "부산광역시 해운대구청",
+	// 		region: "부산",
+	// 		budget: "23억 원",
+	// 		budgetValue: 23,
+	// 		deadline: "2026-01-12",
+	// 		type: "공사",
+	// 		status: "진행중",
+	// 		announcementDate: "2025-12-22",
+	// 	},
+	// 	{
+	// 		id: 5,
+	// 		title: "대전시 유성구 복지센터 리모델링",
+	// 		agency: "대전광역시 유성구청",
+	// 		region: "대전",
+	// 		budget: "8억 원",
+	// 		budgetValue: 8,
+	// 		deadline: "2026-01-20",
+	// 		type: "공사",
+	// 		status: "진행중",
+	// 		announcementDate: "2025-12-25",
+	// 	},
+	// 	{
+	// 		id: 6,
+	// 		title: "광주시 광산구 문화체육시설 신축",
+	// 		agency: "광주광역시 광산구청",
+	// 		region: "광주",
+	// 		budget: "45억 원",
+	// 		budgetValue: 45,
+	// 		deadline: "2026-01-18",
+	// 		type: "공사",
+	// 		status: "진행중",
+	// 		announcementDate: "2025-12-28",
+	// 	},
+	// ];
 
 	const filteredBids = useMemo(() => {
 		return bids.filter((bid) => {
@@ -150,8 +163,8 @@ export function BidDiscovery({ onNavigate, onAddToCart }: BidDiscoveryProps) {
 	}, [filteredBids, sortOption]);
 
 	const getDaysUntilDeadline = (deadline: string) => {
-		const today = new Date("2026-01-06");
-		const deadlineDate = new Date(deadline);
+        const today = new Date();
+        const deadlineDate = new Date(deadline);
 		const diffTime = deadlineDate.getTime() - today.getTime();
 		const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 		return diffDays;

@@ -59,7 +59,7 @@ export function NewPostForm({ onSubmit, onCancel }: NewPostFormProps) {
                 type: f.type || "application/octet-stream",
                 size: f.size,
                 isImage,
-                url: URL.createObjectURL(f), // ✅ 로컬 미리보기 URL
+                url: URL.createObjectURL(f), //  로컬 미리보기 URL
             };
         });
 
@@ -68,7 +68,7 @@ export function NewPostForm({ onSubmit, onCancel }: NewPostFormProps) {
             content,
             category,
             author: "사용자",
-            attachments, // ✅ 추가
+            attachments, // 추가
         });
     };
 

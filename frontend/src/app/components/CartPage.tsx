@@ -10,56 +10,70 @@ import type { Page } from "../../types/navigation";
 //   onRemoveFromCart: (bidId: number) => void;
 //   onNavigate: (page: string, bidId?: number) => void;
 // }
+export type Bid = {
+    id: number;
+    title: string;
+    agency: string;
+    region: string;
+    budget: string;
+    budgetValue: number;
+    deadline: string;
+    type: string;
+    status: string;
+    announcementDate: string;
+};
 
 interface CartPageProps {
     cartItems: number[];
     onRemoveFromCart: (bidId: number) => void;
     onNavigate: (page: Page, bidId?: number) => void;
+    bids : Bid[];
 }
 
-export function CartPage({ cartItems, onRemoveFromCart, onNavigate }: CartPageProps) {
-  // Mock data - in real app, would fetch based on cartItems IDs
-  const allBids = [
-    {
-      id: 1,
-      title: "서울시 강남구 도로 보수공사",
-      agency: "서울특별시 강남구청",
-      region: "서울",
-      budget: "35억 원",
-      budgetValue: 35,
-      deadline: "2026-01-08",
-      type: "공사",
-      status: "진행중",
-    },
-    {
-      id: 2,
-      title: "경기도 성남시 공공건물 신축공사",
-      agency: "경기도 성남시청",
-      region: "경기",
-      budget: "87억 원",
-      budgetValue: 87,
-      deadline: "2026-01-15",
-      type: "공사",
-      status: "진행중",
-    },
-    {
-      id: 3,
-      title: "인천광역시 연수구 학교시설 개선공사",
-      agency: "인천광역시 교육청",
-      region: "인천",
-      budget: "12억 원",
-      budgetValue: 12,
-      deadline: "2026-01-10",
-      type: "공사",
-      status: "진행중",
-    },
-  ];
+export function CartPage({ cartItems, onRemoveFromCart, onNavigate, bids }: CartPageProps) {
 
-  const savedBids = allBids.filter(bid => cartItems.includes(bid.id));
+    // // Mock data - in real app, would fetch based on cartItems IDs
+  // const allBids = [
+  //   {
+  //     id: 1,
+  //     title: "서울시 강남구 도로 보수공사",
+  //     agency: "서울특별시 강남구청",
+  //     region: "서울",
+  //     budget: "35억 원",
+  //     budgetValue: 35,
+  //     deadline: "2026-01-08",
+  //     type: "공사",
+  //     status: "진행중",
+  //   },
+  //   {
+  //     id: 2,
+  //     title: "경기도 성남시 공공건물 신축공사",
+  //     agency: "경기도 성남시청",
+  //     region: "경기",
+  //     budget: "87억 원",
+  //     budgetValue: 87,
+  //     deadline: "2026-01-15",
+  //     type: "공사",
+  //     status: "진행중",
+  //   },
+  //   {
+  //     id: 3,
+  //     title: "인천광역시 연수구 학교시설 개선공사",
+  //     agency: "인천광역시 교육청",
+  //     region: "인천",
+  //     budget: "12억 원",
+  //     budgetValue: 12,
+  //     deadline: "2026-01-10",
+  //     type: "공사",
+  //     status: "진행중",
+  //   },
+  // ];
+
+  const savedBids = bids.filter(bid => cartItems.includes(bid.id));
   const totalBudget = savedBids.reduce((sum, bid) => sum + bid.budgetValue, 0);
 
   const getDaysUntilDeadline = (deadline: string) => {
-    const today = new Date("2026-01-06");
+    const today = new Date();
     const deadlineDate = new Date(deadline);
     const diffTime = deadlineDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
