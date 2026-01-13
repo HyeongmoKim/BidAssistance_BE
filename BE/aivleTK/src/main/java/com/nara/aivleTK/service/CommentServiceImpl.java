@@ -27,24 +27,31 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
-    public CommentResponse createComment(int bidId, CommentCreateRequest request){
-        if(request.getContent()==null || request.getContent().trim().isEmpty()){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"댓글 내용을 입력해주세요.");
+    public CommentResponse createComment(int bidId, CommentCreateRequest request) {
+        if (request.getContent() == null || request.getContent().trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "댓글 내용을 입력해주세요.");
         }
-        Bid bid =bidRepository.findById(bidId)
-                .orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Bid not found"));
-        User user=userRepository.findById(request.getUserId())
-                .orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"User not Found"));
+        Bid bid = bidRepository.findById(bidId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Bid not found"));
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not Found"));
 
-        Comment comment = Comment.builder()
-                .commentContent(request.getContent())
-                .commentCreateAt(LocalDateTime.now())
-                .bid(bid)
-                .user(user)
-                .build();
-        commentRepository.save(comment);
-        return new CommentResponse(comment);
-    }
+        Comment parent = null;
+        if (request.getParentId() != null) { // 요청에 부모 ID가 있다면
+            parent = commentRepository.findById(request.getParentId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "부모 댓글을 찾을 수 없습니다."));
+        }
+            Comment comment = Comment.builder()
+                    .commentContent(request.getContent())
+                    .commentCreateAt(LocalDateTime.now())
+                    .bid(bid)
+                    .user(user)
+                    .parent(parent)
+                    .build();
+            commentRepository.save(comment);
+            return new CommentResponse(comment);
+        }
+
 
     @Override
     @Transactional

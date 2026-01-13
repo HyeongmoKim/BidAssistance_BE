@@ -1,9 +1,13 @@
 package com.nara.aivleTK.dto.comment;
 
 import com.nara.aivleTK.domain.Comment;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+@Getter
+@Setter
 public class CommentResponse {
     private int commentId;
     private String content;
@@ -11,6 +15,8 @@ public class CommentResponse {
     private Integer userId;
     private String userName;
     private int bidId;
+    private Integer parentCommentId;
+
 
     public CommentResponse(Comment comment){
         this.commentId = comment.getCommentId();
@@ -22,6 +28,9 @@ public class CommentResponse {
         }
         if(comment.getBid()!=null){
             this.bidId = comment.getBid().getBidId();
+        }
+        if(comment.getParent()!=null){
+            this.parentCommentId = comment.getParent().getCommentId();
         }
     }
 }

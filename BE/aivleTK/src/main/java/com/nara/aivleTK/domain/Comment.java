@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name="comment")
@@ -28,12 +30,20 @@ public class Comment {
     private LocalDateTime commentCreateAt;
 
     @ManyToOne
-    @JoinColumn(name="bid_id",nullable = false)
+    @JoinColumn(name="bid_id",nullable = true)
     private Bid bid;
 
     @ManyToOne
     @JoinColumn(name="users_user_id",nullable = false)
     private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_comment_id")
+    private Comment parent;
+
+
+    @ManyToOne
+    @JoinColumn(name="board_id", nullable = true)
 
     @PrePersist
     public void onCreate() {

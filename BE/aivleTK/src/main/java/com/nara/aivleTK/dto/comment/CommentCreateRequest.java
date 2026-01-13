@@ -9,4 +9,5 @@ public class CommentCreateRequest {
     private String Content;
     private Integer userId;
     private String bidId;
+    private Integer parentId;
 }
