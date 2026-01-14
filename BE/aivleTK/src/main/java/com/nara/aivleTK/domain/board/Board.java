@@ -27,6 +27,7 @@ public class Board extends AutoTimeRecode {
     @JoinColumn(name="user_id", nullable=false)
     private User user;
 
+    @Builder.Default
     @OneToMany(mappedBy="board", cascade = CascadeType.ALL)
     private List<Comment> comments = new ArrayList<>();
 
