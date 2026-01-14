@@ -1,12 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowLeft, Eye, ThumbsUp, MessageSquare, Send } from 'lucide-react';
 import type { Post, Attachment } from "./CommunityPage";
 import { Download, Image as ImageIcon, FileText as FileTextIcon } from "lucide-react";
+
+
 
 interface PostDetailProps {
   post: Post;
   onBack: () => void;
   onAddComment: (postId: string, content: string) => void;
+    onUpdatePost: (
+        postId: string,
+        patch: Partial<Pick<Post, "title" | "content" | "category" | "attachments">>
+    ) => void;
+    onDeletePost: (postId: string) => void;
 }
 
 const categoryLabels = {
@@ -23,8 +30,20 @@ const categoryColors = {
   discussion: 'bg-orange-100 text-orange-800',
 };
 
-export function PostDetail({ post, onBack, onAddComment }: PostDetailProps) {
+export function PostDetail({ post, onBack, onAddComment, onUpdatePost, onDeletePost}: PostDetailProps) {
   const [commentText, setCommentText] = useState('');
+    const [isEditing, setIsEditing] = useState(false);
+    const [editTitle, setEditTitle] = useState(post.title);
+    const [editContent, setEditContent] = useState(post.content);
+    const [editCategory, setEditCategory] = useState<Post["category"]>(post.category);
+
+    useEffect(() => {
+        if (!isEditing) {
+            setEditTitle(post.title);
+            setEditContent(post.content);
+            setEditCategory(post.category);
+        }
+    }, [post.id, isEditing, post.title, post.content, post.category]);
 
   const handleSubmitComment = () => {
     if (commentText.trim()) {
@@ -32,8 +51,44 @@ export function PostDetail({ post, onBack, onAddComment }: PostDetailProps) {
       setCommentText('');
     }
   };
+    const startEdit = () => {
+        setIsEditing(true);
+        setEditTitle(post.title);
+        setEditContent(post.content);
+        setEditCategory(post.category);
+    };
 
-  return (
+    const cancelEdit = () => {
+        setIsEditing(false);
+        // 원복
+        setEditTitle(post.title);
+        setEditContent(post.content);
+        setEditCategory(post.category);
+    };
+
+    const saveEdit = () => {
+        const t = editTitle.trim();
+        const c = editContent.trim();
+        if (!t || !c) return;
+
+        onUpdatePost(post.id, {
+            title: t,
+            content: c,
+            category: editCategory,
+        });
+
+        setIsEditing(false);
+    };
+    const handleDeletePost = () => {
+        const ok = window.confirm("이 게시글을 삭제할까요? 삭제 후 복구할 수 없습니다.");
+        if (!ok) return;
+
+        // (선택) objectURL 정리 - 아래 3번 참고
+        onDeletePost(post.id);
+    };
+
+
+    return (
     <div className="space-y-6">
       {/* Back Button */}
       <button
@@ -47,14 +102,94 @@ export function PostDetail({ post, onBack, onAddComment }: PostDetailProps) {
       {/* Post Content */}
       <div className="bg-white rounded-lg border border-gray-200 p-8">
         <div className="mb-4">
-          <span className={`px-3 py-1 rounded text-sm font-medium ${categoryColors[post.category]}`}>
-            {categoryLabels[post.category]}
-          </span>
+          {/*<span className={`px-3 py-1 rounded text-sm font-medium ${categoryColors[post.category]}`}>*/}
+          {/*  {categoryLabels[post.category]}*/}
+          {/*</span>*/}
+
+            {isEditing ? (
+                <select
+                    value={editCategory}
+                    onChange={(e) => setEditCategory(e.target.value as Post["category"])}
+                    className="px-3 py-2 border rounded-lg text-sm"
+                >
+                    <option value="question">질문</option>
+                    <option value="info">정보</option>
+                    <option value="review">후기</option>
+                    <option value="discussion">토론</option>
+                </select>
+            ) : (
+                <span className={`px-3 py-1 rounded text-sm font-medium ${categoryColors[post.category]}`}>
+    {categoryLabels[post.category]}
+  </span>
+            )}
+
         </div>
 
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">{post.title}</h1>
+          {/*{isEditing ? (*/}
+          {/*    <input*/}
+          {/*        value={editTitle}*/}
+          {/*        onChange={(e) => setEditTitle(e.target.value)}*/}
+          {/*        className="w-full text-2xl font-bold border rounded-lg px-3 py-2"*/}
+          {/*    />*/}
+          {/*) : (*/}
+          {/*    <h1 className="text-3xl font-bold text-gray-900 mb-4">{post.title}</h1>*/}
+          {/*)}*/}
+          <div className="flex items-start justify-between gap-3 mb-4">
+              <div className="min-w-0 flex-1">
+                  {isEditing ? (
+                      <input
+                          value={editTitle}
+                          onChange={(e) => setEditTitle(e.target.value)}
+                          className="w-full text-2xl font-bold border rounded-lg px-3 py-2"
+                      />
+                  ) : (
+                      <h1 className="text-3xl font-bold text-gray-900 truncate">
+                          {post.title}
+                      </h1>
+                  )}
+              </div>
 
-        <div className="flex items-center gap-4 text-sm text-gray-500 mb-6 pb-6 border-b border-gray-200">
+              <div className="shrink-0 flex gap-2">
+                  {!isEditing && (
+                      <button
+                          type="button"
+                          onClick={handleDeletePost}
+                          className="px-3 py-2 rounded-lg border border-red-300 text-red-600 hover:bg-red-50"
+                      >
+                          삭제
+                      </button>
+                  )}
+
+                  {isEditing ? (
+                      <>
+                          <button
+                              type="button"
+                              onClick={cancelEdit}
+                              className="px-3 py-2 rounded-lg border"
+                          >
+                              취소
+                          </button>
+                          <button
+                              type="button"
+                              onClick={saveEdit}
+                              className="px-3 py-2 rounded-lg bg-blue-600 text-white"
+                          >
+                              저장
+                          </button>
+                      </>
+                  ) : (
+                      <button
+                          type="button"
+                          onClick={startEdit}
+                          className="px-3 py-2 rounded-lg border"
+                      >
+                          수정
+                      </button>
+                  )}
+              </div>
+          </div>
+
+          <div className="flex items-center gap-4 text-sm text-gray-500 mb-6 pb-6 border-b border-gray-200">
           <span className="font-medium text-gray-700">{post.author}</span>
           <span>·</span>
           <span>{post.createdAt}</span>
@@ -66,7 +201,15 @@ export function PostDetail({ post, onBack, onAddComment }: PostDetailProps) {
         </div>
 
         <div className="prose max-w-none mb-6">
-          <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{post.content}</p>
+            {isEditing ? (
+                <textarea
+                    value={editContent}
+                    onChange={(e) => setEditContent(e.target.value)}
+                    className="w-full border rounded-lg px-3 py-2 min-h-[240px]"
+                />
+            ) : (
+                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{post.content}</p>
+            )}
         </div>
 
         {/*{post.tags.length > 0 && (*/}

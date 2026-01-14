@@ -153,6 +153,30 @@ export function CommunityPage() {
         setPosts((prev) => [post, ...prev]);
         setViewMode("list");
     };
+    const updatePost = (
+        postId: string,
+        patch: Partial<Pick<Post, "title" | "content" | "category" | "attachments">>
+    ) => {
+        // 목록 갱신
+        setPosts((prev) =>
+            prev.map((p) => (p.id === postId ? { ...p, ...patch } : p))
+        );
+
+        // 상세 화면 즉시 반영
+        setSelectedPost((prev) => {
+            if (!prev || prev.id !== postId) return prev;
+            return { ...prev, ...patch };
+        });
+    };
+    const deletePost = (postId: string) => {
+        setPosts((prev) => prev.filter((p) => p.id !== postId));
+
+        // detail에서 보고 있던 글을 삭제한 경우: 화면 정리
+        setSelectedPost((prev) => (prev?.id === postId ? null : prev));
+        if (selectedPost?.id === postId) {
+            setViewMode("list");
+        }
+    };
 
     return (
         <div className="space-y-4">
@@ -186,7 +210,12 @@ export function CommunityPage() {
             )}
 
             {viewMode === "detail" && selectedPost && (
-                <PostDetail post={selectedPost} onBack={backToList} onAddComment={addComment} />
+                <PostDetail post={selectedPost}
+                            onBack={backToList}
+                            onAddComment={addComment}
+                            onUpdatePost={updatePost}
+                            onDeletePost={deletePost}
+                />
             )}
 
             {viewMode === "new" && (
