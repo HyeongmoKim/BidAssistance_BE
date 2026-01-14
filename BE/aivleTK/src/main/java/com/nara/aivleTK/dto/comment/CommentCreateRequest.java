@@ -10,4 +10,5 @@ public class CommentCreateRequest {
     private Integer userId;
     private String bidId;
     private Integer parentId;
+    private Integer boardId;
 }

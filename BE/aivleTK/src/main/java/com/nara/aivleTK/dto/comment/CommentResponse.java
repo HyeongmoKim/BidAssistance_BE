@@ -16,6 +16,7 @@ public class CommentResponse {
     private String userName;
     private int bidId;
     private Integer parentCommentId;
+    private Integer boardId;
 
 
     public CommentResponse(Comment comment){
@@ -28,6 +29,9 @@ public class CommentResponse {
         }
         if(comment.getBid()!=null){
             this.bidId = comment.getBid().getBidId();
+        }
+        if(comment.getBoard()!=null){
+            this.boardId = comment.getBoard().getId();
         }
         if(comment.getParent()!=null){
             this.parentCommentId = comment.getParent().getCommentId();

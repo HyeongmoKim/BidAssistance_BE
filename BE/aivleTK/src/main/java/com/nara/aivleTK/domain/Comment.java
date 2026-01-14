@@ -1,5 +1,6 @@
 package com.nara.aivleTK.domain;
 
+import com.nara.aivleTK.domain.board.Board;
 import com.nara.aivleTK.domain.user.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -32,6 +33,10 @@ public class Comment {
     @ManyToOne
     @JoinColumn(name="bid_id",nullable = true)
     private Bid bid;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "board_id", nullable = true)
+    private Board board;
 
     @ManyToOne
     @JoinColumn(name="users_user_id",nullable = false)

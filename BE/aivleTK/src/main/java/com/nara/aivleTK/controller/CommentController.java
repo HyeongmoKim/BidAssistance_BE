@@ -13,7 +13,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/bids/{bidId}/comments")
 public class CommentController {
-    private CommentService commentService;
+    private final CommentService commentService;
 
     @PostMapping
     public ResponseEntity<CommentResponse> createComment(
