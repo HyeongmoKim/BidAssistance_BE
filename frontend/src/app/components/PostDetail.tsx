@@ -15,6 +15,8 @@ interface PostDetailProps {
     ) => void;
     onDeletePost: (postId: string) => void;
     onToggleLike: (postId: string) => void;
+    onDeleteComment: (postId: string, commentId: string) => void;
+
 
 }
 
@@ -32,7 +34,7 @@ const categoryColors = {
   discussion: 'bg-orange-100 text-orange-800',
 };
 
-export function PostDetail({ post, onBack, onAddComment, onUpdatePost, onDeletePost, onToggleLike}: PostDetailProps) {
+export function PostDetail({ post, onBack, onAddComment, onUpdatePost, onDeletePost, onToggleLike, onDeleteComment}: PostDetailProps) {
   const [commentText, setCommentText] = useState('');
     const [isEditing, setIsEditing] = useState(false);
     const [editTitle, setEditTitle] = useState(post.title);
@@ -336,11 +338,29 @@ export function PostDetail({ post, onBack, onAddComment, onUpdatePost, onDeleteP
         <div className="space-y-6">
           {post.comments.map((comment) => (
             <div key={comment.id} className="border-b border-gray-100 pb-6 last:border-b-0 last:pb-0">
-              <div className="flex items-center gap-3 mb-2">
-                <span className="font-medium text-gray-900">{comment.author}</span>
-                <span className="text-sm text-gray-500">{comment.createdAt}</span>
-              </div>
-              <p className="text-gray-700 mb-3">{comment.content}</p>
+                <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                        <span className="font-medium text-gray-900">{comment.author}</span>
+                        <span className="text-sm text-gray-500">{comment.createdAt}</span>
+                    </div>
+
+                    {/* ✅ 본인 댓글만 삭제 허용(선택) */}
+                    {comment.author === "사용자" && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                const ok = window.confirm("이 댓글을 삭제할까요?");
+                                if (!ok) return;
+                                onDeleteComment(post.id, comment.id);
+                            }}
+                            className="text-sm text-gray-400 hover:text-red-600"
+                        >
+                            삭제
+                        </button>
+                    )}
+                </div>
+
+                <p className="text-gray-700 mb-3">{comment.content}</p>
               <button className="flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600 transition-colors">
                 <ThumbsUp className="w-4 h-4" />
                 <span>{comment.likes}</span>

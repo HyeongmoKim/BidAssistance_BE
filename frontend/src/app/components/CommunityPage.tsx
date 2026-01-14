@@ -210,6 +210,27 @@ export function CommunityPage() {
             };
         });
     };
+    const deleteComment = (postId: string, commentId: string) => {
+        // 목록 state 업데이트
+        setPosts((prev) =>
+            prev.map((p) => {
+                if (p.id !== postId) return p;
+                return {
+                    ...p,
+                    comments: p.comments.filter((c) => c.id !== commentId),
+                };
+            })
+        );
+
+        // detail 화면 즉시 반영
+        setSelectedPost((prev) => {
+            if (!prev || prev.id !== postId) return prev;
+            return {
+                ...prev,
+                comments: prev.comments.filter((c) => c.id !== commentId),
+            };
+        });
+    };
 
     return (
         <div className="space-y-4">
@@ -251,6 +272,7 @@ export function CommunityPage() {
                             onUpdatePost={updatePost}
                             onDeletePost={deletePost}
                             onToggleLike={togglePostLike}
+                            onDeleteComment={deleteComment}
                 />
             )}
 
