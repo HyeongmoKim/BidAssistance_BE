@@ -344,7 +344,7 @@ export function PostDetail({ post, onBack, onAddComment, onUpdatePost, onDeleteP
                         <span className="text-sm text-gray-500">{comment.createdAt}</span>
                     </div>
 
-                    {/* ✅ 본인 댓글만 삭제 허용(선택) */}
+                    {/*  본인 댓글만 삭제 허용(선택) */}
                     {comment.author === "사용자" && (
                         <button
                             type="button"
@@ -359,6 +359,7 @@ export function PostDetail({ post, onBack, onAddComment, onUpdatePost, onDeleteP
                         </button>
                     )}
                 </div>
+
 
                 <p className="text-gray-700 mb-3">{comment.content}</p>
               <button className="flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600 transition-colors">

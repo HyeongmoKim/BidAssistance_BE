@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState,useEffect } from "react";
 import { CommunityBoard } from "./CommunityBoard";
 import { PostDetail } from "./PostDetail";
 import { NewPostForm } from "./NewPostForm";
@@ -231,34 +231,58 @@ export function CommunityPage() {
             };
         });
     };
+    useEffect(() => {
+        // 화면 전환(목록/상세/글쓰기) 시 맨 위로
+        window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    }, [viewMode, selectedPost?.id]);
 
     return (
         <div className="space-y-4">
             {/* 상단 바 */}
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle>커뮤니티</CardTitle>
-                    {viewMode === "list" ? (
-                        <Button onClick={() => setViewMode("new")}>글쓰기</Button>
-                    ) :
-                        (
-                        <Button variant="outline" onClick={() => setViewMode("list")}>
-                            목록
-                        </Button>
-                    )
-                    }
-                </CardHeader>
+            {/*<Card>*/}
+            {/*    <CardHeader className="flex flex-row items-center justify-between">*/}
+            {/*        <CardTitle>커뮤니티</CardTitle>*/}
+            {/*        {viewMode === "list" ? (*/}
+            {/*            <Button onClick={() => setViewMode("new")}>글쓰기</Button>*/}
+            {/*        ) :*/}
+            {/*            (*/}
+            {/*            <Button variant="outline" onClick={() => setViewMode("list")}>*/}
+            {/*                목록*/}
+            {/*            </Button>*/}
+            {/*        )*/}
+            {/*        }*/}
+            {/*    </CardHeader>*/}
 
-                {viewMode === "list" && (
-                    <CardContent className="flex gap-2">
-                        <Input
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="검색: 제목/내용/태그"
-                        />
-                    </CardContent>
-                )}
-            </Card>
+            {/*    {viewMode === "list" && (*/}
+            {/*        <CardContent className="flex gap-2">*/}
+            {/*            <Input*/}
+            {/*                value={searchQuery}*/}
+            {/*                onChange={(e) => setSearchQuery(e.target.value)}*/}
+            {/*                placeholder="검색: 제목/내용/태그"*/}
+            {/*            />*/}
+            {/*        </CardContent>*/}
+            {/*    )}*/}
+            {/*</Card>*/}
+            {(viewMode === "list" ) && (
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                        <CardTitle>커뮤니티</CardTitle>
+                        {viewMode === "list" && (
+                            <Button onClick={() => setViewMode("new")}>글쓰기</Button>
+                        )}
+                    </CardHeader>
+
+                    {viewMode === "list" && (
+                        <CardContent className="flex gap-2">
+                            <Input
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="검색: 제목/내용"
+                            />
+                        </CardContent>
+                    )}
+                </Card>
+            )}
 
             {/* 본문 */}
             {viewMode === "list" && (
