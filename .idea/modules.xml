@@ -2,8 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Backend.iml" filepath="$PROJECT_DIR$/.idea/Backend.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/aivleTK.iml" filepath="$PROJECT_DIR$/.idea/modules/aivleTK.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/aivleTK.main.iml" filepath="$PROJECT_DIR$/.idea/modules/aivleTK.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/aivleTK.test.iml" filepath="$PROJECT_DIR$/.idea/modules/aivleTK.test.iml" />
     </modules>
   </component>
 </project>
