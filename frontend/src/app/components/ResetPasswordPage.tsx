@@ -28,19 +28,42 @@ const LEGACY_KEY_TO_INDEX: Record<string, number> = {
     favorite_food: 3,
 };
 
+// function resolveQuestionIndex(recoveryQA: {
+//     questionIndex?: number;
+//     question?: string;
+// }): number | null {
+//     const idx = recoveryQA?.questionIndex;
+//     if (Number.isInteger(idx) && idx >= 0 && idx < SECURITY_QUESTIONS.length) {
+//         return idx;
+//     }
+//
+//     const legacy = (recoveryQA?.question ?? "").trim();
+//     if (legacy && legacy in LEGACY_KEY_TO_INDEX) {
+//         return LEGACY_KEY_TO_INDEX[legacy];
+//     }
+//     return null;
+// }
 function resolveQuestionIndex(recoveryQA: {
     questionIndex?: number;
     question?: string;
 }): number | null {
     const idx = recoveryQA?.questionIndex;
-    if (Number.isInteger(idx) && idx >= 0 && idx < SECURITY_QUESTIONS.length) {
+
+    // TS가 idx를 number로 확실히 알게 만들기
+    if (
+        typeof idx === "number" &&
+        Number.isInteger(idx) &&
+        idx >= 0 &&
+        idx < SECURITY_QUESTIONS.length
+    ) {
         return idx;
     }
 
     const legacy = (recoveryQA?.question ?? "").trim();
-    if (legacy && legacy in LEGACY_KEY_TO_INDEX) {
-        return LEGACY_KEY_TO_INDEX[legacy];
+    if (legacy && Object.prototype.hasOwnProperty.call(LEGACY_KEY_TO_INDEX, legacy)) {
+        return LEGACY_KEY_TO_INDEX[legacy as keyof typeof LEGACY_KEY_TO_INDEX];
     }
+
     return null;
 }
 
@@ -48,7 +71,7 @@ function resolveQuestionIndex(recoveryQA: {
 type LocalUser = {
     email: string;
     password: string;
-    companyName: string;
+    nickName: string;
     name: string;
     birthDate: string; // YYYY-MM-DD
     createdAt: string;
@@ -97,6 +120,7 @@ export function ResetPasswordPage({ onNavigateToLogin }: ResetPasswordPageProps)
 
     const [formData, setFormData] = useState({
         email: "",
+        name : "",
         birthDate: "",
         answer: "",
     });
@@ -108,8 +132,9 @@ export function ResetPasswordPage({ onNavigateToLogin }: ResetPasswordPageProps)
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const canIdentify = useMemo(() => {
-        return Boolean(formData.email && formData.birthDate);
-    }, [formData.email, formData.birthDate]);
+        return Boolean(formData.email.trim() && formData.name.trim() && formData.birthDate);
+    }, [formData.email, formData.name, formData.birthDate]);
+
 
     const canChallenge = useMemo(() => {
         return Boolean(questionIndex !== null && formData.answer);
@@ -154,6 +179,10 @@ export function ResetPasswordPage({ onNavigateToLogin }: ResetPasswordPageProps)
                     type: "error",
                     text: "해당 이메일로 가입된 계정을 찾을 수 없어요.",
                 });
+                return;
+            }
+            if (normalize(target.name) !== normalize(formData.name)) {
+                setMessage({ type: "error", text: "이름이 일치하지 않아요." });
                 return;
             }
 
@@ -232,18 +261,18 @@ export function ResetPasswordPage({ onNavigateToLogin }: ResetPasswordPageProps)
                 return;
             }
 
-            // ✅ 임시 비밀번호 생성 (6자리, 영어+숫자)
+            //  임시 비밀번호 생성 (6자리, 영어+숫자)
             const tempPassword = generateTempPassword(6);
 
-            // ✅ (데모/로컬) 임시 비밀번호로 교체
-            // 실제 서비스에서는 서버에서 비밀번호를 재설정하고 이메일 발송까지 처리해야 합니다.
+            //  (데모/로컬) 임시 비밀번호로 교체
+            // 실제 서비스에서는 서버에서 비밀번호를 재설정하고 이메일 발송까지 처리
             users[idx] = {
                 ...target,
                 password: tempPassword,
             };
             writeUsers(users);
 
-            // ✅ 실제 이메일 전송은 백엔드에서 처리해야 합니다.
+            //  실제 이메일 전송은 백엔드에서 처리
             // 프론트에서는 성공 메시지만 보여주고, DEV 모드에서만 임시 비밀번호를 노출(테스트 편의).
             const devHint = import.meta.env.DEV
                 ? ` (DEV: 임시 비밀번호: ${tempPassword})`
@@ -254,7 +283,7 @@ export function ResetPasswordPage({ onNavigateToLogin }: ResetPasswordPageProps)
                 text: `임시 비밀번호가 이메일로 전송되었습니다. 메일을 확인해 주세요.${devHint}`,
             });
 
-            setTimeout(() => onNavigateToLogin(), 400);
+            // setTimeout(() => onNavigateToLogin(), 400);
         } finally {
             setIsSubmitting(false);
         }
@@ -293,6 +322,16 @@ export function ResetPasswordPage({ onNavigateToLogin }: ResetPasswordPageProps)
 
                         {step === "identify" ? (
                             <>
+                                <div className="space-y-2">
+                                    <Label htmlFor="name">이름</Label>
+                                    <Input
+                                        id="name"
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                        required
+                                    />
+                                </div>
+
                                 <div className="space-y-2">
                                     <Label htmlFor="email">이메일</Label>
                                     <Input
@@ -354,6 +393,7 @@ export function ResetPasswordPage({ onNavigateToLogin }: ResetPasswordPageProps)
                                         setIdentifiedEmail("");
                                         setQuestionIndex(null);
                                         setFormData({
+                                            name : formData.name,
                                             email: formData.email,
                                             birthDate: formData.birthDate,
                                             answer: "",

@@ -38,7 +38,7 @@ const SECURITY_QUESTIONS = [
 type LocalUser = {
     email: string;
     password: string;
-    companyName: string;
+    nickName: string;
     birthDate: string;
     name: string;
     createdAt: string;
@@ -92,7 +92,7 @@ export function SignupPage({ onSignup, onNavigateToLogin }: SignupPageProps) {
         email: "",
         password: "",
         confirmPassword: "",
-        companyName: "",
+        nickName: "",
         birthDate: "",
         name: "",
         // 숫자 인덱스를 문자열로 들고 있다가 저장 시 Number()로 변환
@@ -116,7 +116,7 @@ export function SignupPage({ onSignup, onNavigateToLogin }: SignupPageProps) {
     const canSubmit = useMemo(() => {
         if (!formData.name.trim()) return false;
         if (!formData.email.trim()) return false;
-        if (!formData.companyName.trim()) return false;
+        if (!formData.nickName.trim()) return false;
         if (!formData.password) return false;
         if (formData.password !== formData.confirmPassword) return false;
         if (!consents.privacyRequired) return false;
@@ -185,7 +185,7 @@ export function SignupPage({ onSignup, onNavigateToLogin }: SignupPageProps) {
             const newUser: LocalUser = {
                 email: formData.email.trim(),
                 password: formData.password,
-                companyName: formData.companyName.trim(),
+                nickName: formData.nickName.trim(),
                 birthDate: formData.birthDate,
                 name: formData.name.trim(),
                 createdAt: new Date().toISOString(),
@@ -269,12 +269,12 @@ export function SignupPage({ onSignup, onNavigateToLogin }: SignupPageProps) {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="companyName">회사명</Label>
+                            <Label htmlFor="nickName">닉네임</Label>
                             <Input
-                                id="companyName"
-                                value={formData.companyName}
+                                id="nickName"
+                                value={formData.nickName}
                                 onChange={(e) =>
-                                    setFormData({ ...formData, companyName: e.target.value })
+                                    setFormData({ ...formData, nickName: e.target.value })
                                 }
                                 required
                             />
