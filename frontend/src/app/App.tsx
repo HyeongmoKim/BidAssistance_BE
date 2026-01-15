@@ -10,6 +10,7 @@ import { NotificationsPage, type NotificationItem } from "./components/Notificat
 import { NoticePage } from "./components/NoticePage";
 import { ChatbotPage } from "./components/ChatbotPage";
 import { ProfilePage } from "./components/ProfilePage";
+import { FloatingChatbotLauncher } from "./components/FloatingChatbotLauncher";
 
 import { Button } from "./components/ui/button";
 import { Badge } from "./components/ui/badge";
@@ -881,19 +882,9 @@ export default function App() {
             </div>
           </div>
         </footer>
+        
+        <FloatingChatbotLauncher onOpen={() => setChatbotOpen(true)} />
 
-        <button
-          type="button"
-          onClick={() => setChatbotOpen(true)}
-          className="fixed bottom-6 right-6 z-40"
-          aria-label="AI 챗봇 열기"
-        >
-          <div className="shadow-lg rounded-full">
-            <Button className="rounded-full h-12 w-12 p-0">
-              <MessageSquare className="h-5 w-5" />
-            </Button>
-          </div>
-        </button>
 
         <ChatbotModal
           open={chatbotOpen}
@@ -1154,18 +1145,7 @@ export default function App() {
         </div>
       </footer>
 
-      <button
-        type="button"
-        onClick={() => setChatbotOpen(true)}
-        className="fixed bottom-6 right-6 z-40"
-        aria-label="AI 챗봇 열기"
-      >
-        <div className="shadow-lg rounded-full">
-          <Button className="rounded-full h-12 w-12 p-0">
-            <MessageSquare className="h-5 w-5" />
-          </Button>
-        </div>
-      </button>
+      <FloatingChatbotLauncher onOpen={() => setChatbotOpen(true)} />
 
       <ChatbotModal
         open={chatbotOpen}
