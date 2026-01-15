@@ -357,12 +357,12 @@ export function BidSummary({ bidId, onNavigate }: BidSummaryProps) {
 							<CardDescription>{bid.description}</CardDescription>
 						</div>
 
-						<div className="shrink-0">
+						{/* <div className="shrink-0">
 							<Button className="gap-2" onClick={handleDownloadNotice}>
 								<Download className="h-4 w-4" />
 								공고문 다운로드
 							</Button>
-						</div>
+						</div> */}
 					</div>
 				</CardHeader>
 
@@ -397,6 +397,15 @@ export function BidSummary({ bidId, onNavigate }: BidSummaryProps) {
 							<div>
 								<p className="text-sm text-muted-foreground">마감일</p>
 								<p className="font-semibold text-red-600">{bid.deadline}</p>
+							</div>
+						</div>
+
+						<div className="flex items-center gap-3">
+							<div>
+								<p className="text-sm text-muted-foreground">첨부파일</p>
+								<p className="mt-1 text-blue-600" onClick={handleDownloadNotice}>
+									{bid.documentFileName}
+								</p>
 							</div>
 						</div>
 					</div>
