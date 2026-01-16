@@ -1,155 +1,332 @@
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { login } from "../api/auth";
+import { fetchWishlist } from "../api/wishlist";
+
+type AuthUser = {
+  name: string;
+  email?: string;
+};
 
 export function Home() {
   const navigate = useNavigate();
 
+  const isAuthed = useMemo(
+    () => !!localStorage.getItem("accessToken"),
+    []
+  );
+
+  const [wishlistCount, setWishlistCount] = useState(0);
+
+  // 홈 우측 로그인 폼
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const user: AuthUser | null = useMemo(() => {
+    const name = localStorage.getItem("name");
+    const storedEmail = localStorage.getItem("email") || undefined;
+    if (!localStorage.getItem("accessToken")) return null;
+    return { name: name || "사용자", email: storedEmail };
+  }, []);
+
+  useEffect(() => {
+    if (!localStorage.getItem("accessToken")) return;
+    fetchWishlist()
+      .then((items) => setWishlistCount(items.length))
+      .catch(() => setWishlistCount(0));
+  }, []);
+
+  const onQuickLogin = async () => {
+    setErrorMsg(null);
+    if (!email.trim() || !password.trim()) {
+      setErrorMsg("이메일과 비밀번호를 입력하세요.");
+      return;
+    }
+    try {
+      setSubmitting(true);
+      const res = await login(email.trim(), password);
+
+      if (res.status !== "success" || !res.data) {
+        setErrorMsg(res.message || "로그인 실패");
+        return;
+      }
+
+      localStorage.setItem("accessToken", res.data.accessToken);
+      localStorage.setItem("refreshToken", res.data.refreshToken);
+      localStorage.setItem("userId", res.data.userId);
+      localStorage.setItem("name", res.data.name);
+      localStorage.setItem("email", email.trim());
+
+      navigate("/dashboard");
+    } catch (e: any) {
+      setErrorMsg(e?.message || "로그인 중 오류가 발생했습니다.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const onLogout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("name");
+    localStorage.removeItem("email");
+    window.location.href = "/";
+  };
+
   return (
-    <div className="space-y-4">
-      {/* 상단 Quick Actions */}
-      <div className="grid grid-cols-4 gap-3">
-        <ActionCard title="대시보드" desc="현황/통계 한눈에" onClick={() => navigate("/dashboard")} />
-        <ActionCard title="공고 찾기" desc="조건 필터/검색" onClick={() => navigate("/bids")} />
-        <ActionCard title="장바구니" desc="wishlist 관리" onClick={() => navigate("/cart")} />
-        <ActionCard title="커뮤니티" desc="정보 공유/질문" onClick={() => navigate("/community")} />
-      </div>
+    <div className="bg-slate-50">
+      <div className="max-w-7xl mx-auto px-5 py-8">
+        {/* 상단: 홈 전용 컴팩트 소개 */}
+        <div className="flex items-end justify-between gap-4 mb-6">
+          <div>
+            <div className="text-sm text-slate-500">AI 기반 입찰 탐색 · 관리</div>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+              공고를 더 빠르게 찾고, 더 확실하게 준비하세요
+            </h1>
+          </div>
+          <div className="hidden md:flex gap-2">
+          </div>
+        </div>
 
-      <div className="grid grid-cols-12 gap-4">
-        {/* AI 검색 패널 */}
-        <section className="col-span-8 rounded-xl border bg-white p-4">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h2 className="text-base font-semibold text-gray-900">✨ AI 기반 공고 검색</h2>
-              <p className="mt-1 text-sm text-gray-600">
-                자연어로 입력하면 조건을 해석해 공고 탐색/분석 흐름으로 연결합니다.
-              </p>
-            </div>
-            <button
-              className="text-sm font-medium text-blue-700 hover:text-blue-800"
-              onClick={() => navigate("/bids")}
-            >
-              공고 리스트 →
-            </button>
+        {/* 메인 그리드: 좌(4메뉴 박스) + 우(로그인/회원정보) */}
+        <div className="grid grid-cols-12 gap-6">
+          {/* LEFT */}
+          <div className="col-span-12 lg:col-span-8 space-y-6">
+            <section className="bg-white border rounded-2xl p-5 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-semibold text-slate-900">바로가기</h2>
+                <div className="text-sm text-slate-500">
+                  핵심 기능 4개를 빠르게 접근
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <QuickBox
+                  title="대시보드"
+                  desc="지표/분포/현황 한눈에"
+                  onClick={() => navigate("/dashboard")}
+                />
+                <QuickBox
+                  title="공고 찾기"
+                  desc="조건 필터 & AI 검색"
+                  onClick={() => navigate("/bids")}
+                />
+                <QuickBox
+                  title="장바구니"
+                  desc={`관심 공고 관리${wishlistCount ? ` · ${wishlistCount}건` : ""}`}
+                  badge={wishlistCount}
+                  onClick={() => navigate("/cart")}
+                />
+                <QuickBox
+                  title="커뮤니티"
+                  desc="실무 팁/질문/공유"
+                  onClick={() => navigate("/community")}
+                />
+              </div>
+            </section>
+
+            {/* 빈 느낌 줄이기: 홈에서 보여주는 “요약 카드” */}
+            <section className="bg-white border rounded-2xl p-5 shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-slate-900">오늘의 추천</h3>
+                <button
+                  className="text-sm text-blue-600 hover:underline"
+                  onClick={() => navigate("/bids")}
+                >
+                  더 보기
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <MiniStat label="신규 공고" value="67" sub="이번 달" />
+                <MiniStat label="마감 임박" value="8" sub="3일 이내" />
+                <MiniStat label="관심 공고" value={String(wishlistCount)} sub="장바구니" />
+              </div>
+
+              <div className="mt-4 text-sm text-slate-500">
+                상단 AI 검색창에서 자연어로 조건을 입력하면 공고 탐색 흐름으로 바로 연결됩니다.
+              </div>
+            </section>
           </div>
 
-          <div className="mt-3 flex gap-2">
-            <input
-              className="flex-1 h-10 rounded-lg px-3 bg-gray-50 border border-transparent focus:border-blue-300 focus:outline-none"
-              placeholder='예: "서울/경기 10억~50억 시설공사, 마감 임박 우선"'
-            />
-            <button className="h-10 px-4 rounded-lg bg-black text-white text-sm font-medium">
-              AI로 검색
-            </button>
-          </div>
+          {/* RIGHT */}
+          <div className="col-span-12 lg:col-span-4">
+            {!localStorage.getItem("accessToken") ? (
+              <aside className="bg-white border rounded-2xl p-5 shadow-sm">
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                  로그인
+                </h3>
+                <p className="text-sm text-slate-500 mb-4">
+                  로그인하면 장바구니/알림/AI 기능을 이용할 수 있습니다.
+                </p>
 
-          <div className="mt-4 grid grid-cols-2 gap-3">
-            <MiniPanel title="추천 키워드" items={["마감 임박", "서울/경기", "10~50억", "시설공사"]} />
-            <MiniPanel title="최근 검색" items={["관급 리모델링", "전기공사 3억 이하", "인천 마감 7일"]} />
-          </div>
-        </section>
+                <div className="space-y-3">
+                  <div>
+                    <div className="text-sm font-medium text-slate-700 mb-1">
+                      이메일
+                    </div>
+                    <input
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full h-11 rounded-xl bg-slate-50 border px-3 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-300"
+                      placeholder="name@company.com"
+                      type="email"
+                    />
+                  </div>
 
-        {/* 로그인/온보딩 패널 */}
-        <aside className="col-span-4 rounded-xl border bg-white p-4">
-          <h3 className="text-base font-semibold text-gray-900">로그인</h3>
-          <p className="mt-1 text-sm text-gray-600">
-            로그인하면 장바구니/알림/AI 기능을 이용할 수 있습니다.
-          </p>
+                  <div>
+                    <div className="text-sm font-medium text-slate-700 mb-1">
+                      비밀번호
+                    </div>
+                    <input
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full h-11 rounded-xl bg-slate-50 border px-3 outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-300"
+                      placeholder="••••••••"
+                      type="password"
+                    />
+                  </div>
 
-          <div className="mt-3 space-y-2">
-            <button
-              className="w-full h-10 rounded-lg bg-black text-white text-sm font-medium"
-              onClick={() => navigate("/login")}
-            >
-              로그인 페이지로 이동
-            </button>
-            <button
-              className="w-full h-10 rounded-lg border text-sm font-medium hover:bg-gray-50"
-              onClick={() => navigate("/signup")}
-            >
-              회원가입
-            </button>
-          </div>
+                  {errorMsg && (
+                    <div className="text-sm text-red-600">{errorMsg}</div>
+                  )}
 
-          <div className="mt-4 rounded-lg bg-slate-50 border p-3">
-            <div className="text-xs text-gray-500">TIP</div>
-            <div className="mt-1 text-sm text-gray-800">
-              관심 공고를 담아두면 마감/정정 알림을 자동으로 받아볼 수 있어요.
-            </div>
-          </div>
-        </aside>
+                  <button
+                    disabled={submitting}
+                    onClick={onQuickLogin}
+                    className="w-full h-11 rounded-xl bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-60"
+                  >
+                    {submitting ? "로그인 중..." : "로그인"}
+                  </button>
 
-        {/* 아래 리스트로 “휑함” 제거 */}
-        <section className="col-span-8 rounded-xl border bg-white p-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-base font-semibold text-gray-900">추천 공고 (샘플)</h3>
-            <button className="text-sm font-medium text-blue-700 hover:text-blue-800" onClick={() => navigate("/bids")}>
-              더보기 →
-            </button>
-          </div>
+                  <div className="grid grid-cols-1 gap-3">
+                    <button
+                      onClick={() => navigate("/signup")}
+                      className="h-11 rounded-xl border hover:bg-slate-50"
+                    >
+                      회원가입
+                    </button>
+                  </div>
 
-          <div className="mt-3 divide-y">
-            <ListRow title="광주시 광산구 문화체육시설 신축" meta="45억 · 2026-01-18" />
-            <ListRow title="대전시 유성구 복지센터 리모델링" meta="8억 · 2026-01-20" />
-            <ListRow title="인천 ○○초 교사동 증축" meta="12억 · 2026-01-22" />
-          </div>
-        </section>
+                  <div className="flex justify-between text-sm text-slate-500 pt-2">
+                    <button
+                      onClick={() => navigate("/find-account")}
+                      className="hover:text-blue-600 hover:underline"
+                    >
+                      계정 찾기
+                    </button>
+                    <button
+                      onClick={() => navigate("/reset-password")}
+                      className="hover:text-blue-600 hover:underline"
+                    >
+                      비밀번호 찾기
+                    </button>
+                  </div>
+                </div>
+              </aside>
+            ) : (
+              <aside className="bg-white border rounded-2xl p-5 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <div className="text-sm text-slate-500">환영합니다</div>
+                    <div className="text-lg font-semibold text-slate-900">
+                      {user?.name ?? "사용자"}
+                    </div>
+                    {user?.email && (
+                      <div className="text-sm text-slate-500">{user.email}</div>
+                    )}
+                  </div>
+                  <div className="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold">
+                    {user?.name?.slice(0, 1) ?? "U"}
+                  </div>
+                </div>
 
-        <section className="col-span-4 rounded-xl border bg-white p-4">
-          <h3 className="text-base font-semibold text-gray-900">알림 요약 (샘플)</h3>
-          <div className="mt-3 space-y-2">
-            <AlertItem title="마감 임박 1건" desc="24시간 이내 공고가 있어요" />
-            <AlertItem title="정정 공고 1건" desc="관심 공고에 변경사항" />
-            <AlertItem title="재공고 1건" desc="조건 재확인 필요" />
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <MiniKpi label="장바구니" value={String(wishlistCount)} />
+                  <MiniKpi label="알림" value="0" />
+                </div>
+
+                <div className="space-y-2">
+                  <button
+                    onClick={() => navigate("/dashboard")}
+                    className="w-full h-11 rounded-xl bg-slate-900 text-white hover:bg-slate-800"
+                  >
+                    대시보드로 이동
+                  </button>
+                  <button
+                    onClick={() => navigate("/cart")}
+                    className="w-full h-11 rounded-xl border hover:bg-slate-50"
+                  >
+                    장바구니 보기
+                  </button>
+                  <button
+                    onClick={onLogout}
+                    className="w-full h-11 rounded-xl border hover:bg-slate-50 text-slate-700"
+                  >
+                    로그아웃
+                  </button>
+                </div>
+              </aside>
+            )}
           </div>
-        </section>
+        </div>
       </div>
     </div>
   );
 }
 
-function ActionCard({ title, desc, onClick }: { title: string; desc: string; onClick: () => void }) {
+function QuickBox({
+  title,
+  desc,
+  onClick,
+  badge,
+}: {
+  title: string;
+  desc: string;
+  onClick: () => void;
+  badge?: number;
+}) {
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-3 rounded-xl border bg-white p-3 hover:bg-gray-50 transition text-left"
+      className="group relative text-left border rounded-2xl p-4 hover:border-blue-200 hover:bg-blue-50/40 transition"
     >
-      <div className="w-9 h-9 bg-slate-100 rounded-lg" />
-      <div>
-        <div className="font-semibold text-sm text-gray-900">{title}</div>
-        <div className="text-xs text-gray-500">{desc}</div>
+      <div className="flex items-center justify-between mb-1">
+        <div className="font-semibold text-slate-900">{title}</div>
+        {!!badge && badge > 0 && (
+          <span className="min-w-[22px] h-[22px] px-1 rounded-full bg-slate-900 text-white text-[12px] flex items-center justify-center">
+            {badge}
+          </span>
+        )}
+      </div>
+      <div className="text-sm text-slate-500">{desc}</div>
+
+      <div className="absolute right-4 bottom-4 text-sm text-blue-600 opacity-0 group-hover:opacity-100 transition">
+        이동 →
       </div>
     </button>
   );
 }
 
-function MiniPanel({ title, items }: { title: string; items: string[] }) {
+function MiniStat({ label, value, sub }: { label: string; value: string; sub: string }) {
   return (
-    <div className="rounded-lg border bg-slate-50 p-3">
-      <div className="text-xs font-semibold text-gray-700">{title}</div>
-      <div className="mt-2 flex flex-wrap gap-2">
-        {items.map((it) => (
-          <span key={it} className="text-xs px-2 py-1 rounded-full bg-white border text-gray-700">
-            {it}
-          </span>
-        ))}
-      </div>
+    <div className="border rounded-2xl p-4 bg-slate-50">
+      <div className="text-sm text-slate-500">{label}</div>
+      <div className="text-2xl font-bold text-slate-900">{value}</div>
+      <div className="text-sm text-slate-500">{sub}</div>
     </div>
   );
 }
 
-function ListRow({ title, meta }: { title: string; meta: string }) {
+function MiniKpi({ label, value }: { label: string; value: string }) {
   return (
-    <div className="py-3 flex items-center justify-between gap-4">
-      <div className="font-medium text-sm text-gray-900">{title}</div>
-      <div className="text-xs text-gray-500 whitespace-nowrap">{meta}</div>
-    </div>
-  );
-}
-
-function AlertItem({ title, desc }: { title: string; desc: string }) {
-  return (
-    <div className="rounded-lg border bg-slate-50 p-3">
-      <div className="text-sm font-semibold text-gray-900">{title}</div>
-      <div className="mt-1 text-xs text-gray-600">{desc}</div>
+    <div className="border rounded-2xl p-4 bg-slate-50">
+      <div className="text-sm text-slate-500">{label}</div>
+      <div className="text-xl font-bold text-slate-900">{value}</div>
     </div>
   );
 }

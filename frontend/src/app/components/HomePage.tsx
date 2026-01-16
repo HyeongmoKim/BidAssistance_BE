@@ -1,10 +1,8 @@
-import { PageContainer } from "../layout/PageContainer";
-import { Home } from "../components/Home";
+import { Home } from "./Home";
 
 export function HomePage() {
-  return (
-    <PageContainer>
-      <Home />
-    </PageContainer>
-  );
+  return <Home />;
 }
+
+/** 과거 App.tsx 호환(alias) */
+export const MainPage = HomePage;

@@ -1,54 +1,172 @@
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
 import { ChatbotFloatingButton } from "../components/ChatbotFloatingButton";
+import { fetchWishlist } from "../api/wishlist";
 
 export function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const isHome = location.pathname === "/";
 
-  return (
-    <div className="min-h-screen flex flex-col bg-white">
-      <header className="border-b bg-white sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-5 h-16 flex items-center justify-between">
-          {/* Logo */}
-          <button
-            type="button"
-            onClick={() => navigate("/")}
-            className="flex items-center gap-3 text-left rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
-          >
-            <div className="w-9 h-9 bg-blue-600 rounded-xl" />
-            <div>
-              <div className="font-bold leading-5">입찰인사이트</div>
-              <div className="text-xs text-gray-500">Smart Procurement Platform</div>
-            </div>
-          </button>
+  const [query, setQuery] = useState("");
+  const [wishlistCount, setWishlistCount] = useState<number>(0);
 
-          {/* 중앙 네비게이션 (홈에서는 숨김) */}
-          {!isHome && (
-            <nav className="flex items-center gap-2">
-              <NavButton label="대시보드" onClick={() => navigate("/dashboard")} />
-              <NavButton label="공고 찾기" onClick={() => navigate("/bids")} />
-              <NavButton label="장바구니" onClick={() => navigate("/cart")} />
-              <NavButton label="커뮤니티" onClick={() => navigate("/community")} />
+  const isAuthed = useMemo(
+    () => !!localStorage.getItem("accessToken"),
+    [location.pathname]
+  );
+
+  useEffect(() => {
+    if (!localStorage.getItem("accessToken")) {
+      setWishlistCount(0);
+      return;
+    }
+    fetchWishlist()
+      .then((items) => setWishlistCount(items.length))
+      .catch(() => setWishlistCount(0));
+  }, [location.pathname]);
+
+  const onSubmitSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = query.trim();
+    if (!q) return;
+    navigate(`/bids?q=${encodeURIComponent(q)}`);
+  };
+
+  const logout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("name");
+    localStorage.removeItem("email");
+    navigate("/", { replace: true });
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col bg-slate-50">
+      {/* ===== Header (Top Bar) ===== */}
+      <header className="border-b bg-slate-900 text-white">
+        <div className="max-w-7xl mx-auto px-5 h-16 flex items-center justify-between gap-4">
+          {/* Left: Logo */}
+          <div className="flex items-center gap-3 min-w-[260px]">
+            <div
+              className="flex items-center gap-3 cursor-pointer select-none"
+              onClick={() => navigate("/")}
+              aria-label="홈으로"
+            >
+              <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center shadow-sm">
+                <span className="text-sm font-extrabold">B</span>
+              </div>
+              <div className="leading-tight">
+                <div className="font-semibold tracking-tight">입찰인사이트</div>
+                <div className="text-[11px] text-slate-300">
+                  Smart Procurement Platform
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Center: MENU (홈에서는 숨김, 다른 페이지에서만 보임) */}
+          {!isHome ? (
+            <nav className="hidden md:flex items-center gap-2">
+              <TopNavButton
+                label="대시보드"
+                active={location.pathname.startsWith("/dashboard")}
+                onClick={() => navigate("/dashboard")}
+              />
+              <TopNavButton
+                label="공고 찾기"
+                active={location.pathname.startsWith("/bids")}
+                onClick={() => navigate("/bids")}
+              />
+              <TopNavButton
+                label="장바구니"
+                active={location.pathname.startsWith("/cart")}
+                badge={wishlistCount}
+                onClick={() => navigate("/cart")}
+              />
+              <TopNavButton
+                label="커뮤니티"
+                active={location.pathname.startsWith("/community")}
+                onClick={() => navigate("/community")}
+              />
             </nav>
+          ) : (
+            <div className="flex-1" />
           )}
 
-          {/* 우측 버튼 */}
-          <div className="flex items-center gap-2">
-            <RightButton label="공지사항" onClick={() => navigate("/notice")} />
-            <RightButton label="알림" onClick={() => navigate("/notifications")} />
+          {/* Right: Notice/Alarm (+ authed only) */}
+          <div className="flex items-center gap-2 justify-end min-w-[260px]">
+            <HeaderPill onClick={() => navigate("/notice")} label="공지사항" />
+            <HeaderPill onClick={() => navigate("/notifications")} label="알림" />
+
+            {/* 홈에서는 로그인 박스가 있으니 헤더 로그인 버튼은 안 둠 */}
+            {isAuthed && (
+              <>
+                <HeaderPill onClick={() => navigate("/profile")} label="마이" />
+                <button
+                  onClick={logout}
+                  className="ml-1 px-3 h-10 rounded-full bg-white/10 hover:bg-white/15 transition text-sm"
+                >
+                  로그아웃
+                </button>
+              </>
+            )}
           </div>
         </div>
       </header>
 
+      {/* ===== Home Only: Search Bar Row (헤더 아래로 내림) ===== */}
+      {isHome && (
+        <section className="bg-white text-slate-900 border-b border-slate-200">
+          <div className="max-w-7xl mx-auto px-5 py-6">
+            <form
+              onSubmit={onSubmitSearch}
+              className="w-full max-w-[760px] mx-auto"
+            >
+              <div className="relative">
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="AI로 공고를 검색해보세요 (예: 서울/경기 10억~50억 시설공사, 마감 임박)"
+                  className="w-full h-12 rounded-full  bg-white text-slate-900 placeholder:text-slate-400 pl-5 pr-14
+                             border border-blue-500/80 focus:border-blue-400 focus:ring-4 focus:ring-blue-500/20 outline-none"
+                />
+                <button
+                  type="submit"
+                  className="absolute right-1 top-1 h-10 w-12 rounded-full bg-blue-600 hover:bg-blue-500 transition flex items-center justify-center"
+                  aria-label="검색"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z"
+                      stroke="white"
+                      strokeWidth="2"
+                    />
+                    <path
+                      d="M21 21l-4.35-4.35"
+                      stroke="white"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+      )}
+
+      {/* ===== Main ===== */}
       <main className="flex-1">
         <Outlet />
       </main>
 
-      <footer className="border-t py-5 text-sm text-gray-500 bg-white">
+      {/* ===== Footer ===== */}
+      <footer className="border-t bg-white py-5 text-sm text-gray-500">
         <div className="max-w-7xl mx-auto px-5 flex items-center justify-between">
           <div>© 2026 입찰인사이트. All rights reserved.</div>
-          <div className="flex items-center gap-6">
+          <div className="flex gap-4">
             <button className="hover:text-gray-700">이용약관</button>
             <button className="hover:text-gray-700">개인정보처리방침</button>
             <button className="hover:text-gray-700">고객지원</button>
@@ -61,24 +179,44 @@ export function AppLayout() {
   );
 }
 
-function NavButton({ label, onClick }: { label: string; onClick: () => void }) {
+function HeaderPill({ label, onClick }: { label: string; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="px-4 py-2 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 border border-transparent hover:border-gray-200 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+      className="px-4 h-10 rounded-full bg-white text-slate-900 border border-slate-200 hover:bg-slate-50 transition text-sm"
     >
       {label}
     </button>
   );
 }
 
-function RightButton({ label, onClick }: { label: string; onClick: () => void }) {
+function TopNavButton({
+  label,
+  onClick,
+  active,
+  badge,
+}: {
+  label: string;
+  onClick: () => void;
+  active?: boolean;
+  badge?: number;
+}) {
   return (
     <button
       onClick={onClick}
-      className="px-3 py-2 rounded-xl border text-sm font-medium text-gray-700 hover:bg-gray-50 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+      className={[
+        "relative px-4 h-10 rounded-full text-sm transition",
+        active
+          ? "bg-blue-600 text-white"
+          : "bg-white/10 hover:bg-white/15 text-white",
+      ].join(" ")}
     >
       {label}
+      {!!badge && badge > 0 && (
+        <span className="absolute -right-1 -top-1 min-w-[18px] h-[18px] px-1 rounded-full bg-white text-slate-900 text-[11px] font-bold flex items-center justify-center">
+          {badge}
+        </span>
+      )}
     </button>
   );
 }
