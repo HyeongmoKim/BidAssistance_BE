@@ -38,4 +38,17 @@ public class AlarmController {
         alarmService.deleteAlarm(alarmId);
         return ResponseEntity.ok("알림이 삭제되었습니다.");
     }
+    // 4. 이메일 알림 발송 API
+    @PostMapping("/email")
+    public ResponseEntity<String> sendEmailNotification(
+            @RequestParam String email,
+            @RequestParam String subject,
+            @RequestParam String content) {
+        try {
+            alarmService.sendEmailNotification(email, subject, content);
+            return ResponseEntity.ok("이메일 알림이 전송되었습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("이메일 발송 실패: " + e.getMessage());
+        }
+    }
 }
