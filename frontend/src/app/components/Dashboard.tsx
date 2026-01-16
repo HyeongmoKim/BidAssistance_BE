@@ -1,101 +1,164 @@
-import { useNavigate } from "react-router-dom";
+import {
+	CartesianGrid,
+	Line,
+	LineChart,
+	Pie,
+	PieChart,
+	ResponsiveContainer,
+	Tooltip,
+	XAxis,
+	YAxis,
+	Legend,
+} from "recharts";
 
 export function Dashboard() {
-  const navigate = useNavigate();
+	// TODO: 추후 API 연동 시 여기 데이터만 교체하면 UI 유지됨
+	const kpi = {
+		newBidsThisMonth: 67,
+		wishlistCount: 0,
+		closingSoon3Days: 8,
+		totalExpectedAmountEok: 142, // "억" 단위
+	};
 
-  return (
-    <div className="space-y-8">
-      {/* ===== Top Cards (4개만) ===== */}
-      <div className="grid grid-cols-4 gap-4">
-        <Card title="대시보드" onClick={() => navigate("/dashboard")} />
-        <Card title="공고 찾기" onClick={() => navigate("/bids")} />
-        <Card title="장바구니" onClick={() => navigate("/cart")} />
-        <Card title="커뮤니티" onClick={() => navigate("/community")} />
-      </div>
+	const monthlyTrend = [
+		{ month: "7월", value: 45 },
+		{ month: "8월", value: 52 },
+		{ month: "9월", value: 48 },
+		{ month: "10월", value: 61 },
+		{ month: "11월", value: 58 },
+		{ month: "12월", value: 68 },
+	];
 
-      {/* ===== Main Content ===== */}
-      <div className="grid grid-cols-3 gap-6">
-        {/* AI Search */}
-        <div className="col-span-2 border rounded-xl p-6 space-y-4">
-          <div className="font-semibold flex items-center gap-2">
-            ✨ AI 기반 공고 검색
-          </div>
+	const regionDist = [
+		{ name: "서울", value: 34 },
+		{ name: "경기", value: 23 },
+		{ name: "인천", value: 16 },
+		{ name: "기타", value: 27 },
+	];
 
-          <p className="text-sm text-gray-600">
-            자연어로 입력하면 조건을 해석해 공고 탐색/분석 흐름으로 연결합니다.
-          </p>
+	return (
+		<div className="space-y-6">
+			{/* KPI cards */}
+			<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+				<KpiCard
+					title="신규 공고"
+					value={`${kpi.newBidsThisMonth}개`}
+					sub="이번 달"
+					icon="📄"
+				/>
+				<KpiCard
+					title="관심 공고"
+					value={`${kpi.wishlistCount}개`}
+					sub="장바구니"
+					icon="📈"
+				/>
+				<KpiCard
+					title="마감 임박"
+					value={`${kpi.closingSoon3Days}개`}
+					sub="3일 이내"
+					icon="⏰"
+					accent="warn"
+				/>
+				<KpiCard
+					title="총 예상액"
+					value={`${kpi.totalExpectedAmountEok}억`}
+					sub="관심 공고 합계"
+					icon="💰"
+				/>
+			</div>
 
-          <input
-            className="w-full h-11 rounded-md px-4 bg-gray-50"
-            placeholder='예: "서울/경기 10억~50억 시설공사, 마감 임박 우선"'
-          />
+			{/* Charts */}
+			<div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+				<div className="border rounded-2xl p-6 bg-white">
+					<div className="mb-4">
+						<div className="text-base font-semibold">월별 공고 추이</div>
+						<div className="text-sm text-gray-500">최근 6개월</div>
+					</div>
 
-          <div className="flex gap-3">
-            <button className="bg-black text-white px-4 py-2 rounded-md">
-              AI로 검색
-            </button>
-            <button
-              className="border px-4 py-2 rounded-md"
-              onClick={() => navigate("/bids")}
-            >
-              공고 리스트로 이동
-            </button>
-          </div>
+					<div className="h-[320px]">
+						<ResponsiveContainer width="100%" height="100%">
+							<LineChart data={monthlyTrend} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+								<CartesianGrid strokeDasharray="3 3" />
+								<XAxis dataKey="month" />
+								<YAxis />
+								<Tooltip />
+								<Line
+									type="monotone"
+									dataKey="value"
+									stroke="#2563eb"
+									strokeWidth={3}
+									dot={{ r: 4 }}
+								/>
+							</LineChart>
+						</ResponsiveContainer>
+					</div>
+				</div>
 
-          <p className="text-xs text-gray-500">
-            현재는 AI 챗봇 화면으로 검색을 전달합니다. 추후 이 패널에서
-            바로 결과 리스트/필터를 렌더링하도록 확장할 수 있습니다.
-          </p>
-        </div>
+				<div className="border rounded-2xl p-6 bg-white">
+					<div className="mb-4">
+						<div className="text-base font-semibold">지역별 분포</div>
+						<div className="text-sm text-gray-500">현재 진행 중인 공고</div>
+					</div>
 
-        {/* Login Card */}
-        <div className="border rounded-xl p-6 space-y-4">
-          <h3 className="font-semibold text-lg">로그인</h3>
-          <p className="text-sm text-gray-600">
-            로그인하면 장바구니/알림/AI 기능을 이용할 수 있습니다.
-          </p>
-
-          <input
-            className="w-full h-10 rounded-md px-3 bg-gray-50"
-            placeholder="이메일"
-          />
-          <input
-            type="password"
-            className="w-full h-10 rounded-md px-3 bg-gray-50"
-            placeholder="비밀번호"
-          />
-
-          <div className="flex gap-2">
-            <button className="flex-1 bg-black text-white py-2 rounded-md">
-              로그인
-            </button>
-            <button
-              className="flex-1 border py-2 rounded-md"
-              onClick={() => navigate("/register")}
-            >
-              회원가입
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+					<div className="h-[320px]">
+						<ResponsiveContainer width="100%" height="100%">
+							<PieChart>
+								<Tooltip />
+								<Legend />
+								<Pie
+									data={regionDist}
+									dataKey="value"
+									nameKey="name"
+									outerRadius={110}
+									label={(d) => `${d.name} ${d.value}%`}
+								>
+									{/* 원래 스샷 느낌대로 색 고정 */}
+									{regionDist.map((_, idx) => (
+										<cell
+											key={`c-${idx}`}
+											fill={["#3b82f6", "#8b5cf6", "#ec4899", "#10b981"][idx % 4]}
+										/>
+									))}
+								</Pie>
+							</PieChart>
+						</ResponsiveContainer>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
 }
 
-function Card({
-  title,
-  onClick,
+function KpiCard({
+	title,
+	value,
+	sub,
+	icon,
+	accent,
 }: {
-  title: string;
-  onClick: () => void;
+	title: string;
+	value: string;
+	sub: string;
+	icon: string;
+	accent?: "warn";
 }) {
-  return (
-    <button
-      onClick={onClick}
-      className="flex items-center gap-3 border rounded-xl p-4 hover:bg-gray-50 transition"
-    >
-      <div className="w-10 h-10 bg-gray-100 rounded-lg" />
-      <span className="font-medium">{title}</span>
-    </button>
-  );
+	return (
+		<div className="border rounded-2xl p-5 bg-white flex items-start justify-between">
+			<div className="space-y-3">
+				<div className="text-sm text-gray-600">{title}</div>
+				<div className="text-3xl font-bold">{value}</div>
+				<div className="text-sm text-gray-500">{sub}</div>
+			</div>
+			<div
+				className={[
+					"w-10 h-10 rounded-xl flex items-center justify-center text-lg",
+					accent === "warn" ? "bg-orange-50" : "bg-gray-50",
+				].join(" ")}
+			>
+				<span className={accent === "warn" ? "text-orange-600" : "text-gray-700"}>
+					{icon}
+				</span>
+			</div>
+		</div>
+	);
 }

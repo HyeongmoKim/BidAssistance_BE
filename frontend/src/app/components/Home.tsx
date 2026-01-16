@@ -56,7 +56,7 @@ export function Home() {
 
           <button
             className="w-full border py-2 rounded-md"
-            onClick={() => navigate("/register")}
+            onClick={() => navigate("/signup")}
           >
             회원가입
           </button>
