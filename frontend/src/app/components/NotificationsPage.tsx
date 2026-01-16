@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -6,243 +6,197 @@ import { Bell, AlertCircle, FileText, RefreshCw, XCircle, Settings, CheckCheck }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
-import type { Page } from "../../types/navigation";
 
 export type NotificationItem = {
-  id: number;
-  type: string;
-  title: string;
-  message: string;
-  time: string;
-  read: boolean;
-  urgent: boolean;
+	id: number;
+	type: string;
+	title: string;
+	message: string;
+	time: string;
+	read: boolean;
+	urgent: boolean;
 };
 
-interface NotificationsPageProps {
-  onNavigate: (page: Page, bidId?: number) => void;
+const STORAGE_KEY = "notifications.v1";
 
-  notifications: NotificationItem[];
-  onMarkRead: (id: number) => void;
-  onMarkAllRead: () => void;
+const DEFAULT_NOTIFICATIONS: NotificationItem[] = [
+	{
+		id: 1,
+		type: "deadline",
+		title: "마감 임박",
+		message: "‘광주시 광산구 문화체육시설 신축’ 공고 마감이 24시간 남았습니다.",
+		time: "방금",
+		read: false,
+		urgent: true,
+	},
+	{
+		id: 2,
+		type: "correction",
+		title: "정정 공고",
+		message: "‘대전시 유성구 복지센터 리모델링’ 정정사항이 등록되었습니다.",
+		time: "1시간 전",
+		read: false,
+		urgent: false,
+	},
+	{
+		id: 3,
+		type: "reannouncement",
+		title: "재공고",
+		message: "관심 공고 중 1건이 재공고되었습니다.",
+		time: "어제",
+		read: true,
+		urgent: false,
+	},
+];
 
-  // true면 알림센터에 들어오는 순간 모두 읽음 처리(요구사항에 부합)
-  autoMarkAllReadOnEnter?: boolean;
-}
+export function NotificationsPage() {
+	const [notifications, setNotifications] = useState<NotificationItem[]>(() => {
+		try {
+			const raw = localStorage.getItem(STORAGE_KEY);
+			if (!raw) return DEFAULT_NOTIFICATIONS;
+			const parsed = JSON.parse(raw) as NotificationItem[];
+			return Array.isArray(parsed) ? parsed : DEFAULT_NOTIFICATIONS;
+		} catch {
+			return DEFAULT_NOTIFICATIONS;
+		}
+	});
 
-export function NotificationsPage({
-  onNavigate,
-  notifications,
-  onMarkRead,
-  onMarkAllRead,
-  autoMarkAllReadOnEnter = true,
-}: NotificationsPageProps) {
-  useEffect(() => {
-    if (autoMarkAllReadOnEnter) onMarkAllRead();
-  }, [autoMarkAllReadOnEnter, onMarkAllRead]);
+	// 요구사항: 알림센터 진입 시 모두 읽음 처리(기본 true)
+	useEffect(() => {
+		setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
-  const getIcon = (type: string) => {
-    switch (type) {
-      case "deadline":
-        return <AlertCircle className="h-5 w-5 text-orange-600" />;
-      case "correction":
-        return <FileText className="h-5 w-5 text-blue-600" />;
-      case "reannouncement":
-        return <RefreshCw className="h-5 w-5 text-purple-600" />;
-      case "unsuccessful":
-        return <XCircle className="h-5 w-5 text-red-600" />;
-      default:
-        return <Bell className="h-5 w-5 text-green-600" />;
-    }
-  };
+	useEffect(() => {
+		localStorage.setItem(STORAGE_KEY, JSON.stringify(notifications));
+	}, [notifications]);
 
-  const getTypeLabel = (type: string) => {
-    switch (type) {
-      case "deadline":
-        return "마감임박";
-      case "correction":
-        return "정정공고";
-      case "reannouncement":
-        return "재공고";
-      case "unsuccessful":
-        return "유찰";
-      default:
-        return "신규공고";
-    }
-  };
+	const unreadCount = useMemo(
+		() => notifications.filter((n) => !n.read).length,
+		[notifications],
+	);
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
-  const urgentNotifications = notifications.filter((n) => n.urgent);
-  const allNotifications = notifications;
+	const getIcon = (type: string) => {
+		switch (type) {
+			case "deadline":
+				return <AlertCircle className="h-5 w-5 text-orange-600" />;
+			case "correction":
+				return <FileText className="h-5 w-5 text-blue-600" />;
+			case "reannouncement":
+				return <RefreshCw className="h-5 w-5 text-purple-600" />;
+			case "unsuccessful":
+				return <XCircle className="h-5 w-5 text-red-600" />;
+			default:
+				return <Bell className="h-5 w-5 text-green-600" />;
+		}
+	};
 
-  const unreadNotifications = notifications.filter((n) => !n.read);
+	const markRead = (id: number) => {
+		setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+	};
 
-  const renderNotificationCard = (notification: NotificationItem, forceRedStyle: boolean = false) => {
-    const baseClass = notification.read
-      ? "bg-gray-50"
-      : forceRedStyle
-        ? "border-red-200 bg-red-50"
-        : "border-blue-200 bg-blue-50";
+	const markAllRead = () => {
+		setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+	};
 
-    return (
-      <Card
-        key={notification.id}
-        className={`${baseClass} cursor-pointer`}
-        onClick={() => {
-          if (!notification.read) onMarkRead(notification.id);
-        }}
-      >
-        <CardContent className="pt-6">
-          <div className="flex items-start gap-4">
-            <div className="flex-shrink-0">{getIcon(notification.type)}</div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <Badge variant={notification.urgent ? "destructive" : "secondary"}>
-                  {getTypeLabel(notification.type)}
-                </Badge>
-                {!notification.read && <Badge variant="default">새 알림</Badge>}
-                {notification.read && <Badge variant="outline">읽음</Badge>}
-              </div>
-              <h4 className="font-semibold mb-1">{notification.title}</h4>
-              <p className="text-sm text-muted-foreground mb-2">{notification.message}</p>
-              <p className="text-xs text-muted-foreground">{notification.time}</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  };
+	return (
+		<div className="space-y-6">
+			<Card>
+				<CardHeader className="flex flex-row items-start justify-between gap-4">
+					<div>
+						<CardTitle className="flex items-center gap-2">
+							<Bell className="h-5 w-5" />
+							알림
+							{unreadCount > 0 && <Badge variant="secondary">{unreadCount}</Badge>}
+						</CardTitle>
+						<CardDescription>마감, 정정, 재공고 등 중요한 이벤트를 확인하세요.</CardDescription>
+					</div>
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl mb-2">알림 센터</h2>
-          <p className="text-muted-foreground">중요한 입찰 정보를 놓치지 마세요</p>
-        </div>
+					<Button variant="outline" onClick={markAllRead}>
+						<CheckCheck className="h-4 w-4" />
+						모두 읽음
+					</Button>
+				</CardHeader>
+				<CardContent>
+					<Tabs defaultValue="all">
+						<TabsList>
+							<TabsTrigger value="all">전체</TabsTrigger>
+							<TabsTrigger value="urgent">긴급</TabsTrigger>
+							<TabsTrigger value="settings">설정</TabsTrigger>
+						</TabsList>
 
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => {localStorage.setItem("profile.activeTab", "notifications"); onNavigate("profile");}}>
-            <Settings className="h-4 w-4 mr-2" />
-            알림 설정
-          </Button>
+						<TabsContent value="all" className="mt-4 space-y-3">
+							{notifications.map((n) => (
+								<button
+									key={n.id}
+									onClick={() => markRead(n.id)}
+									className={[
+										"w-full text-left rounded-xl border bg-white p-4 transition",
+										"hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400",
+										n.read ? "opacity-80" : "border-blue-200",
+									].join(" ")}
+								>
+									<div className="flex items-start justify-between gap-4">
+										<div className="flex items-start gap-3">
+											<div className="mt-0.5">{getIcon(n.type)}</div>
+											<div>
+												<div className="flex items-center gap-2">
+													<div className="font-semibold">{n.title}</div>
+													{n.urgent && <Badge>긴급</Badge>}
+													{!n.read && <Badge variant="secondary">NEW</Badge>}
+												</div>
+												<div className="text-sm text-gray-600 mt-1">{n.message}</div>
+											</div>
+										</div>
+										<div className="text-xs text-gray-500 whitespace-nowrap">{n.time}</div>
+									</div>
+								</button>
+							))}
+						</TabsContent>
 
-          <Button variant="default" onClick={onMarkAllRead} disabled={unreadCount === 0}>
-            <CheckCheck className="h-4 w-4 mr-2" />
-            모두 읽음
-          </Button>
-        </div>
-      </div>
+						<TabsContent value="urgent" className="mt-4 space-y-3">
+							{notifications.filter((n) => n.urgent).map((n) => (
+								<div key={n.id} className="rounded-xl border bg-white p-4">
+									<div className="flex items-start justify-between gap-4">
+										<div className="flex items-start gap-3">
+											<div className="mt-0.5">{getIcon(n.type)}</div>
+											<div>
+												<div className="font-semibold">{n.title}</div>
+												<div className="text-sm text-gray-600 mt-1">{n.message}</div>
+											</div>
+										</div>
+										<div className="text-xs text-gray-500 whitespace-nowrap">{n.time}</div>
+									</div>
+								</div>
+							))}
+						</TabsContent>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm">읽지 않은 알림</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{unreadCount}개</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm">긴급 알림</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">{urgentNotifications.length}개</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm">전체 알림</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{allNotifications.length}개</div>
-          </CardContent>
-        </Card>
-      </div>
+						<TabsContent value="settings" className="mt-4">
+							<div className="rounded-xl border bg-white p-4 space-y-4">
+								<div className="flex items-center justify-between">
+									<div className="flex items-center gap-2">
+										<Settings className="h-4 w-4 text-gray-600" />
+										<Label>마감 임박 알림</Label>
+									</div>
+									<Switch defaultChecked />
+								</div>
 
-      {/* Notifications List */}
-      <Tabs defaultValue="all" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="all">전체 ({allNotifications.length})</TabsTrigger>
-          <TabsTrigger value="unread">읽지 않음 ({unreadCount})</TabsTrigger>
-          <TabsTrigger value="urgent">긴급 ({urgentNotifications.length})</TabsTrigger>
-        </TabsList>
+								<div className="flex items-center justify-between">
+									<div className="flex items-center gap-2">
+										<Settings className="h-4 w-4 text-gray-600" />
+										<Label>정정/재공고 알림</Label>
+									</div>
+									<Switch defaultChecked />
+								</div>
 
-        <TabsContent value="all" className="space-y-3">
-          {allNotifications.length === 0 ? (
-            <Card>
-              <CardContent className="py-10 text-center text-muted-foreground">
-                표시할 알림이 없습니다.
-              </CardContent>
-            </Card>
-          ) : (
-            allNotifications.map((n) => renderNotificationCard(n))
-          )}
-        </TabsContent>
-
-        <TabsContent value="unread" className="space-y-3">
-          {unreadNotifications.length === 0 ? (
-            <Card>
-              <CardContent className="py-10 text-center text-muted-foreground">
-                읽지 않은 알림이 없습니다.
-              </CardContent>
-            </Card>
-          ) : (
-            unreadNotifications.map((n) => renderNotificationCard(n))
-          )}
-        </TabsContent>
-
-        <TabsContent value="urgent" className="space-y-3">
-          {urgentNotifications.length === 0 ? (
-            <Card>
-              <CardContent className="py-10 text-center text-muted-foreground">
-                긴급 알림이 없습니다.
-              </CardContent>
-            </Card>
-          ) : (
-            urgentNotifications.map((n) => renderNotificationCard(n, true))
-          )}
-        </TabsContent>
-      </Tabs>
-
-      {/* Notification Settings Preview */}
-      <Card>
-        <CardHeader>
-          <CardTitle>알림 설정</CardTitle>
-          <CardDescription>받고 싶은 알림 유형을 선택하세요</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label>마감 임박 알림</Label>
-              <p className="text-sm text-muted-foreground">마감 3일 전부터 알림</p>
-            </div>
-            <Switch defaultChecked />
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label>정정공고 알림</Label>
-              <p className="text-sm text-muted-foreground">공고 내용 변경 시 알림</p>
-            </div>
-            <Switch defaultChecked />
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label>재공고 알림</Label>
-              <p className="text-sm text-muted-foreground">유찰 후 재공고 시 알림</p>
-            </div>
-            <Switch defaultChecked />
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label>신규 공고 알림</Label>
-              <p className="text-sm text-muted-foreground">관심 지역 신규 공고 알림</p>
-            </div>
-            <Switch />
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+								<div className="text-sm text-gray-500">
+									* 실제 운영에서는 사용자 설정을 서버에 저장하도록 연결하세요.
+								</div>
+							</div>
+						</TabsContent>
+					</Tabs>
+				</CardContent>
+			</Card>
+		</div>
+	);
 }
