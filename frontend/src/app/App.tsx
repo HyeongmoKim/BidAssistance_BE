@@ -54,23 +54,17 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      {/* 전역 로딩/토스트 */}
       {globalLoading && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]">
-          <div className="bg-white px-6 py-3 rounded-lg shadow">
-            처리 중...
-          </div>
+          <div className="bg-white px-6 py-3 rounded-lg shadow">처리 중...</div>
         </div>
       )}
       {toast && <Toast message={toast.message} type={toast.type} />}
 
       <Routes>
-        {/* ✅ 레이아웃 적용 구간 */}
         <Route element={<AppLayout />}>
-          {/* 홈 */}
           <Route path="/" element={<HomePage />} />
 
-          {/* 대시보드(보호) */}
           <Route
             path="/dashboard"
             element={
@@ -82,41 +76,42 @@ export default function App() {
             }
           />
 
-          {/* 공고찾기(공개 조회 가능하게 두고 싶으면 ProtectedRoute 제거) */}
           <Route
             path="/bids"
             element={
               <PageContainer>
-                <BidDiscovery setGlobalLoading={setGlobalLoading} showToast={showToast} />
+                <BidDiscovery
+                  setGlobalLoading={setGlobalLoading}
+                  showToast={showToast}
+                />
               </PageContainer>
             }
           />
 
-          {/* 장바구니(보호) */}
           <Route
             path="/cart"
             element={
               <ProtectedRoute>
                 <PageContainer>
-                  <CartPage setGlobalLoading={setGlobalLoading} showToast={showToast} />
+                  <CartPage
+                    setGlobalLoading={setGlobalLoading}
+                    showToast={showToast}
+                  />
                 </PageContainer>
               </ProtectedRoute>
             }
           />
 
-          {/* 커뮤니티(보호) */}
+          {/* ✅ 커뮤니티: 로그인 없이 접근 가능 */}
           <Route
             path="/community"
             element={
-              <ProtectedRoute>
-                <PageContainer>
-                  <CommunityPage />
-                </PageContainer>
-              </ProtectedRoute>
+              <PageContainer>
+                <CommunityPage />
+              </PageContainer>
             }
           />
 
-          {/* 공지/알림/마이페이지(보호) */}
           <Route
             path="/notice"
             element={
@@ -149,7 +144,6 @@ export default function App() {
           />
         </Route>
 
-        {/* ✅ 인증 페이지는 단독 화면(원래 UI 유지) */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupRoute />} />
         <Route path="/find-account" element={<FindAccountRoute />} />

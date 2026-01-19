@@ -1,107 +1,171 @@
-import { MessageSquare, Eye, ThumbsUp } from 'lucide-react';
-import type { Post } from './CommunityPage';
+import { ChevronRight, Eye, MessageSquare, Paperclip, ThumbsUp } from "lucide-react";
+import type { Post } from "./CommunityPage";
 
+import { Badge } from "./ui/badge";
+import { Card } from "./ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 
 interface CommunityBoardProps {
-  posts: Post[];
-  searchQuery: string;
-  onSelectPost: (post: Post) => void;
+	posts: Post[];
+	onSelectPost: (post: Post) => void;
 }
 
-const categoryLabels = {
-  question: '질문',
-  info: '정보',
-  review: '후기',
-  discussion: '토론',
+const categoryLabels: Record<Post["category"], string> = {
+	question: "질문",
+	info: "정보",
+	review: "후기",
+	discussion: "토론",
 };
 
-const categoryColors = {
-  question: 'bg-blue-100 text-blue-800',
-  info: 'bg-green-100 text-green-800',
-  review: 'bg-purple-100 text-purple-800',
-  discussion: 'bg-orange-100 text-orange-800',
-};
+function CategoryBadge({ category }: { category: Post["category"] }) {
+	const cls =
+		category === "question"
+			? "border-blue-200 bg-blue-50 text-blue-700"
+			: category === "info"
+				? "border-emerald-200 bg-emerald-50 text-emerald-700"
+				: category === "review"
+					? "border-violet-200 bg-violet-50 text-violet-700"
+					: "border-amber-200 bg-amber-50 text-amber-700";
 
-export function CommunityBoard({ posts, searchQuery, onSelectPost }: CommunityBoardProps) {
-  const filteredPosts = posts.filter(post =>
-    post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    post.content.toLowerCase().includes(searchQuery.toLowerCase())
-          // ||
-    // post.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+	return (
+		<Badge variant="outline" className={cls}>
+			{categoryLabels[category]}
+		</Badge>
+	);
+}
 
-  return (
-    <div className="space-y-3">
-        {filteredPosts.map((post) => {
-            const thumb = post.attachments?.find((a) => a.isImage);
+export function CommunityBoard({ posts, onSelectPost }: CommunityBoardProps) {
+	// 모바일: 카드, 데스크톱: 테이블
+	return (
+		<div className="space-y-3">
+			{/* ===== Desktop Table (B2B) ===== */}
+			<div className="hidden md:block">
+				<Card className="border bg-white overflow-hidden">
+					<Table>
+						<TableHeader>
+							<TableRow className="bg-slate-50 hover:bg-slate-50">
+								<TableHead className="w-[90px]">유형</TableHead>
+								<TableHead>제목</TableHead>
+								<TableHead className="w-[140px]">작성자</TableHead>
+								<TableHead className="w-[120px]">작성일</TableHead>
+								<TableHead className="w-[90px] text-right">조회</TableHead>
+								<TableHead className="w-[90px] text-right">댓글</TableHead>
+								<TableHead className="w-[90px] text-right">좋아요</TableHead>
+								<TableHead className="w-[44px]" />
+							</TableRow>
+						</TableHeader>
 
-            return (
-                <div
-                    key={post.id}
-                    onClick={() => onSelectPost(post)}
-                    className="bg-white rounded-lg border border-gray-200 p-5 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer"
-                >
-                    <div className="flex items-start gap-4">
-                        <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-            <span className={`px-2 py-1 rounded text-xs font-medium ${categoryColors[post.category]}`}>
-              {categoryLabels[post.category]}
-            </span>
-                                <span className="text-sm text-gray-500">{post.author}</span>
-                                <span className="text-sm text-gray-400">·</span>
-                                <span className="text-sm text-gray-500">{post.createdAt}</span>
-                            </div>
+						<TableBody>
+							{posts.map((post) => {
+								const hasFile = (post.attachments?.length ?? 0) > 0;
 
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">{post.title}</h3>
-                            <p className="text-gray-600 text-sm line-clamp-2 mb-3">{post.content}</p>
+								return (
+									<TableRow
+										key={post.id}
+										onClick={() => onSelectPost(post)}
+										className="cursor-pointer"
+									>
+										<TableCell>
+											<CategoryBadge category={post.category} />
+										</TableCell>
 
-                            <div className="flex items-center gap-4 text-sm text-gray-500">
-                                <div className="flex items-center gap-1">
-                                    <Eye className="w-4 h-4" />
-                                    <span>{post.views}</span>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                    <MessageSquare className="w-4 h-4" />
-                                    <span>{post.comments.length}</span>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                    <ThumbsUp className="w-4 h-4" />
-                                    <span>{post.likes}</span>
-                                </div>
-                            </div>
-                        </div>
+										<TableCell className="min-w-0">
+											<div className="flex items-center gap-2 min-w-0">
+												<div className="font-medium text-gray-900 truncate">
+													{post.title}
+												</div>
+												{hasFile && (
+													<Paperclip className="h-4 w-4 text-gray-400 shrink-0" />
+												)}
+											</div>
+											<div className="mt-0.5 text-xs text-gray-500 line-clamp-1">
+												{post.content}
+											</div>
+										</TableCell>
 
-                        {thumb ? (
-                            <div className="shrink-0">
-                                <img
-                                    src={thumb.url}
-                                    alt={thumb.name}
-                                    className="w-24 h-24 object-cover rounded-lg border"
-                                />
-                            </div>
-                        ) : null}
-                    </div>
-                </div>
-            );
-        })}
+										<TableCell className="text-gray-700">{post.author}</TableCell>
+										<TableCell className="text-gray-500 tabular-nums">
+											{post.createdAt}
+										</TableCell>
 
-        {/*{post.tags.length > 0 && (*/}
-        {/*  <div className="flex flex-wrap gap-2 mt-3">*/}
-        {/*    {post.tags.map((tag, idx) => (*/}
-        {/*      <span*/}
-        {/*        key={idx}*/}
-        {/*        className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs"*/}
-        {/*      >*/}
-        {/*        #{tag}*/}
-        {/*      </span>*/}
-        {/*    ))}*/}
-        {/*  </div>*/}
-        {/*)}*/}
-      {filteredPosts.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-gray-500">검색 결과가 없습니다.</p>
-        </div>
-      )}
-    </div>
-  );
+										<TableCell className="text-right text-gray-600 tabular-nums">
+											<span className="inline-flex items-center gap-1 justify-end">
+												<Eye className="h-4 w-4 text-gray-400" />
+												{post.views}
+											</span>
+										</TableCell>
+
+										<TableCell className="text-right text-gray-600 tabular-nums">
+											<span className="inline-flex items-center gap-1 justify-end">
+												<MessageSquare className="h-4 w-4 text-gray-400" />
+												{post.comments.length}
+											</span>
+										</TableCell>
+
+										<TableCell className="text-right text-gray-600 tabular-nums">
+											<span className="inline-flex items-center gap-1 justify-end">
+												<ThumbsUp className="h-4 w-4 text-gray-400" />
+												{post.likes}
+											</span>
+										</TableCell>
+
+										<TableCell className="text-right">
+											<ChevronRight className="h-4 w-4 text-gray-400" />
+										</TableCell>
+									</TableRow>
+								);
+							})}
+
+							{posts.length === 0 && (
+								<TableRow>
+									<TableCell colSpan={8} className="py-12 text-center text-gray-500">
+										조건에 맞는 게시글이 없습니다.
+									</TableCell>
+								</TableRow>								
+							)}
+						</TableBody>
+					</Table>
+				</Card>
+			</div>
+
+			{/* ===== Mobile Cards ===== */}
+			<div className="md:hidden space-y-3">
+				{posts.map((post) => (
+					<div
+						key={post.id}
+						onClick={() => onSelectPost(post)}
+						className="bg-white rounded-lg border border-gray-200 p-4 hover:border-blue-300 hover:shadow-sm transition cursor-pointer"
+					>
+						<div className="flex items-center gap-2 mb-2">
+							<CategoryBadge category={post.category} />
+							<span className="text-xs text-gray-500">{post.author}</span>
+							<span className="text-xs text-gray-400">·</span>
+							<span className="text-xs text-gray-500">{post.createdAt}</span>
+						</div>
+
+						<div className="font-semibold text-gray-900 mb-1">{post.title}</div>
+						<div className="text-sm text-gray-600 line-clamp-2">{post.content}</div>
+
+						<div className="mt-3 flex items-center gap-3 text-xs text-gray-500 tabular-nums">
+							<span className="inline-flex items-center gap-1">
+								<Eye className="h-4 w-4" /> {post.views}
+							</span>
+							<span className="inline-flex items-center gap-1">
+								<MessageSquare className="h-4 w-4" /> {post.comments.length}
+							</span>
+							<span className="inline-flex items-center gap-1">
+								<ThumbsUp className="h-4 w-4" /> {post.likes}
+							</span>
+						</div>
+					</div>
+				))}
+
+				{posts.length === 0 && (
+					<div className="text-center py-12 text-gray-500">
+						조건에 맞는 게시글이 없습니다.
+					</div>
+				)}
+			</div>
+		</div>
+	);
 }

@@ -1,308 +1,413 @@
-import { useMemo, useState,useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
 import { CommunityBoard } from "./CommunityBoard";
 import { PostDetail } from "./PostDetail";
 import { NewPostForm } from "./NewPostForm";
+
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Card, CardContent, CardHeader } from "./ui/card";
+import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "./ui/select";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
+
+import { Info, Plus, Search as SearchIcon } from "lucide-react";
 
 export type Comment = {
-    id: string;
-    author: string;
-    content: string;
-    createdAt: string;
-    likes: number;
+	id: string;
+	author: string;
+	content: string;
+	createdAt: string;
+	likes: number;
 };
+
 export type Attachment = {
-    id: string;
-    name: string;
-    type: string;      // mime type e.g. image/png
-    url: string;       // objectURL or uploaded URL
-    size: number;
-    isImage: boolean;
+	id: string;
+	name: string;
+	type: string;
+	url: string;
+	size: number;
+	isImage: boolean;
 };
 
 export type Post = {
-    id: string;
-    title: string;
-    content: string;
-    category: "question" | "info" | "review" | "discussion";
-    // tags: string[];
-    author: string;
-    createdAt: string;
-    views: number;
-    likes: number;
-    likedByMe : boolean;
-    comments: Comment[];
-    attachments: Attachment[];
+	id: string;
+	title: string;
+	content: string;
+	category: "question" | "info" | "review" | "discussion";
+	author: string;
+	createdAt: string; // YYYY-MM-DD
+	views: number;
+	likes: number;
+	likedByMe: boolean;
+	comments: Comment[];
+	attachments: Attachment[];
 };
 
 type ViewMode = "list" | "detail" | "new";
+type CategoryFilter = "all" | Post["category"];
+type SortKey = "latest" | "popular" | "views" | "comments";
+
+const categoryLabel: Record<CategoryFilter, string> = {
+	all: "전체",
+	question: "질문",
+	info: "정보",
+	review: "후기",
+	discussion: "토론",
+};
 
 export function CommunityPage() {
-    const [viewMode, setViewMode] = useState<ViewMode>("list");
-    const [searchQuery, setSearchQuery] = useState("");
-    const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+	const navigate = useNavigate();
+	const isAuthed = useMemo(() => !!localStorage.getItem("accessToken"), []);
 
-    const [posts, setPosts] = useState<Post[]>([
-        {
-            id: "p1",
-            title: "입찰 서류 준비할 때 체크리스트 있을까요?",
-            content: "처음 입찰 참여하는데 필수로 챙겨야 할 서류/실수 방지 팁 공유 부탁드립니다.",
-            category: "question",
-            // tags: ["입찰", "서류", "체크리스트"],
-            author: "사용자A",
-            createdAt: "2026-01-12",
-            views: 12,
-            likes: 3,
-            likedByMe: false,
-            comments: [],
-            attachments: [],
-        },
-        {
-            id: "p2",
-            title: "마감 임박 공고 우선순위 정하는 기준 공유",
-            content: "마감 임박 공고가 많을 때, 금액/지역/경쟁률 기반으로 우선순위 정하는 방법 공유합니다.",
-            category: "info",
-            // tags: ["마감임박", "우선순위"],
-            author: "사용자B",
-            createdAt: "2026-01-11",
-            views: 30,
-            likes: 8,
-            likedByMe: false,
-            comments: [],
-            attachments: [],
-        },
-    ]);
+	const [viewMode, setViewMode] = useState<ViewMode>("list");
+	const [searchQuery, setSearchQuery] = useState("");
+	const [category, setCategory] = useState<CategoryFilter>("all");
+	const [sortKey, setSortKey] = useState<SortKey>("latest");
+	const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
-    const filtered = useMemo(() => {
-        const q = searchQuery.trim().toLowerCase();
-        if (!q) return posts;
-        return posts.filter(
-            (p) =>
-                p.title.toLowerCase().includes(q) ||
-                p.content.toLowerCase().includes(q)
-        );
-    }, [posts, searchQuery]);
+	const [posts, setPosts] = useState<Post[]>([
+		{
+			id: "p1",
+			title: "입찰 서류 준비할 때 체크리스트 있을까요?",
+			content:
+				"처음 입찰 참여하는데 필수로 챙겨야 할 서류/실수 방지 팁 공유 부탁드립니다.",
+			category: "question",
+			author: "사용자A",
+			createdAt: "2026-01-12",
+			views: 12,
+			likes: 3,
+			likedByMe: false,
+			comments: [],
+			attachments: [],
+		},
+		{
+			id: "p2",
+			title: "마감 임박 공고 우선순위 정하는 기준 공유",
+			content:
+				"마감 임박 공고가 많을 때, 금액/지역/경쟁률 기반으로 우선순위 정하는 방법 공유합니다.",
+			category: "info",
+			author: "사용자B",
+			createdAt: "2026-01-11",
+			views: 30,
+			likes: 8,
+			likedByMe: false,
+			comments: [],
+			attachments: [],
+		},
+	]);
 
-    const openDetail = (post: Post) => {
-        // 조회수 증가한 "업데이트된 post"를 만든 뒤
-        const nextPost = { ...post, views: post.views + 1 };
+	const counts = useMemo(() => {
+		const base = { all: posts.length, question: 0, info: 0, review: 0, discussion: 0 };
+		posts.forEach((p) => {
+			base[p.category] += 1;
+		});
+		return base;
+	}, [posts]);
 
-        // 목록 state 업데이트
-        setPosts((prev) => prev.map((x) => (x.id === post.id ? nextPost : x)));
+	const filteredSorted = useMemo(() => {
+		const q = searchQuery.trim().toLowerCase();
 
-        // detail state도 업데이트된 post로 세팅
-        setSelectedPost(nextPost);
-        setViewMode("detail");
-    };
+		let list = posts;
 
-    const backToList = () => {
-        setSelectedPost(null);
-        setViewMode("list");
-    };
+		if (category !== "all") {
+			list = list.filter((p) => p.category === category);
+		}
 
-    const addComment = (postId: string, content: string) => {
-        const now = new Date();
-        const createdAt = now.toISOString().slice(0, 10);
-        setPosts((prev) =>
-            prev.map((p) => {
-                if (p.id !== postId) return p;
-                return {
-                    ...p,
-                    comments: [
-                        ...p.comments,
-                        {
-                            id: `c_${Date.now()}`,
-                            author: "사용자",
-                            content,
-                            createdAt,
-                            likes: 0,
-                        },
-                    ],
-                };
-            })
-        );
+		if (q) {
+			list = list.filter(
+				(p) =>
+					p.title.toLowerCase().includes(q) ||
+					p.content.toLowerCase().includes(q) ||
+					p.author.toLowerCase().includes(q),
+			);
+		}
 
-        // detail 화면에서 바로 갱신되게 selectedPost도 업데이트
-        setSelectedPost((prev) => {
-            if (!prev || prev.id !== postId) return prev;
-            return {
-                ...prev,
-                comments: [
-                    ...prev.comments,
-                    {
-                        id: `c_${Date.now()}`,
-                        author: "사용자",
-                        content,
-                        createdAt,
-                        likes: 0,
-                    },
-                ],
-            };
-        });
-    };
+		const toTime = (d: string) => new Date(d).getTime() || 0;
 
-    const addPost = (newPost: Omit<Post, "id" | "createdAt" | "views" | "likes" | "comments">) => {
-        const createdAt = new Date().toISOString().slice(0, 10);
-        const post: Post = {
-            ...newPost,
-            id: `p_${Date.now()}`,
-            createdAt,
-            views: 0,
-            likes: 0,
-            comments: [],
-        };
-        setPosts((prev) => [post, ...prev]);
-        setViewMode("list");
-    };
-    const updatePost = (
-        postId: string,
-        patch: Partial<Pick<Post, "title" | "content" | "category" | "attachments">>
-    ) => {
-        // 목록 갱신
-        setPosts((prev) =>
-            prev.map((p) => (p.id === postId ? { ...p, ...patch } : p))
-        );
+		const sorted = [...list].sort((a, b) => {
+			if (sortKey === "popular") {
+				if (b.likes !== a.likes) return b.likes - a.likes;
+				return toTime(b.createdAt) - toTime(a.createdAt);
+			}
+			if (sortKey === "views") {
+				if (b.views !== a.views) return b.views - a.views;
+				return toTime(b.createdAt) - toTime(a.createdAt);
+			}
+			if (sortKey === "comments") {
+				if (b.comments.length !== a.comments.length) return b.comments.length - a.comments.length;
+				return toTime(b.createdAt) - toTime(a.createdAt);
+			}
+			// latest
+			return toTime(b.createdAt) - toTime(a.createdAt);
+		});
 
-        // 상세 화면 즉시 반영
-        setSelectedPost((prev) => {
-            if (!prev || prev.id !== postId) return prev;
-            return { ...prev, ...patch };
-        });
-    };
-    const deletePost = (postId: string) => {
-        setPosts((prev) => prev.filter((p) => p.id !== postId));
+		return sorted;
+	}, [posts, searchQuery, category, sortKey]);
 
-        // detail에서 보고 있던 글을 삭제한 경우: 화면 정리
-        setSelectedPost((prev) => (prev?.id === postId ? null : prev));
-        if (selectedPost?.id === postId) {
-            setViewMode("list");
-        }
-    };
-    const togglePostLike = (postId: string) => {
-        setPosts((prev) =>
-            prev.map((p) => {
-                if (p.id !== postId) return p;
+	const goLogin = () => {
+		navigate("/login", { state: { from: "/community" } });
+	};
 
-                const liked = !!p.likedByMe;
-                const nextLiked = !liked;
+	const openDetail = (post: Post) => {
+		const nextPost = { ...post, views: post.views + 1 };
+		setPosts((prev) => prev.map((x) => (x.id === post.id ? nextPost : x)));
+		setSelectedPost(nextPost);
+		setViewMode("detail");
+	};
 
-                return {
-                    ...p,
-                    likedByMe: nextLiked,
-                    likes: Math.max(0, p.likes + (nextLiked ? 1 : -1)),
-                };
-            })
-        );
+	const backToList = () => {
+		setSelectedPost(null);
+		setViewMode("list");
+	};
 
-        // detail 화면 즉시 반영
-        setSelectedPost((prev) => {
-            if (!prev || prev.id !== postId) return prev;
+	const addPost = (
+		newPost: Omit<Post, "id" | "createdAt" | "views" | "likes" | "comments">,
+	) => {
+		const createdAt = new Date().toISOString().slice(0, 10);
+		const post: Post = {
+			...newPost,
+			id: `p_${Date.now()}`,
+			createdAt,
+			views: 0,
+			likes: 0,
+			comments: [],
+		};
+		setPosts((prev) => [post, ...prev]);
+		setViewMode("list");
+	};
 
-            const liked = !!prev.likedByMe;
-            const nextLiked = !liked;
+	const addComment = (postId: string, content: string) => {
+		const createdAt = new Date().toISOString().slice(0, 10);
 
-            return {
-                ...prev,
-                likedByMe: nextLiked,
-                likes: Math.max(0, prev.likes + (nextLiked ? 1 : -1)),
-            };
-        });
-    };
-    const deleteComment = (postId: string, commentId: string) => {
-        // 목록 state 업데이트
-        setPosts((prev) =>
-            prev.map((p) => {
-                if (p.id !== postId) return p;
-                return {
-                    ...p,
-                    comments: p.comments.filter((c) => c.id !== commentId),
-                };
-            })
-        );
+		setPosts((prev) =>
+			prev.map((p) => {
+				if (p.id !== postId) return p;
+				return {
+					...p,
+					comments: [
+						...p.comments,
+						{
+							id: `c_${Date.now()}`,
+							author: "사용자",
+							content,
+							createdAt,
+							likes: 0,
+						},
+					],
+				};
+			}),
+		);
 
-        // detail 화면 즉시 반영
-        setSelectedPost((prev) => {
-            if (!prev || prev.id !== postId) return prev;
-            return {
-                ...prev,
-                comments: prev.comments.filter((c) => c.id !== commentId),
-            };
-        });
-    };
-    useEffect(() => {
-        // 화면 전환(목록/상세/글쓰기) 시 맨 위로
-        window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-    }, [viewMode, selectedPost?.id]);
+		setSelectedPost((prev) => {
+			if (!prev || prev.id !== postId) return prev;
+			return {
+				...prev,
+				comments: [
+					...prev.comments,
+					{
+						id: `c_${Date.now()}`,
+						author: "사용자",
+						content,
+						createdAt,
+						likes: 0,
+					},
+				],
+			};
+		});
+	};
 
-    return (
-        <div className="space-y-4">
-            {/* 상단 바 */}
-            {/*<Card>*/}
-            {/*    <CardHeader className="flex flex-row items-center justify-between">*/}
-            {/*        <CardTitle>커뮤니티</CardTitle>*/}
-            {/*        {viewMode === "list" ? (*/}
-            {/*            <Button onClick={() => setViewMode("new")}>글쓰기</Button>*/}
-            {/*        ) :*/}
-            {/*            (*/}
-            {/*            <Button variant="outline" onClick={() => setViewMode("list")}>*/}
-            {/*                목록*/}
-            {/*            </Button>*/}
-            {/*        )*/}
-            {/*        }*/}
-            {/*    </CardHeader>*/}
+	const updatePost = (
+		postId: string,
+		patch: Partial<Pick<Post, "title" | "content" | "category" | "attachments">>,
+	) => {
+		setPosts((prev) => prev.map((p) => (p.id === postId ? { ...p, ...patch } : p)));
+		setSelectedPost((prev) => {
+			if (!prev || prev.id !== postId) return prev;
+			return { ...prev, ...patch };
+		});
+	};
 
-            {/*    {viewMode === "list" && (*/}
-            {/*        <CardContent className="flex gap-2">*/}
-            {/*            <Input*/}
-            {/*                value={searchQuery}*/}
-            {/*                onChange={(e) => setSearchQuery(e.target.value)}*/}
-            {/*                placeholder="검색: 제목/내용/태그"*/}
-            {/*            />*/}
-            {/*        </CardContent>*/}
-            {/*    )}*/}
-            {/*</Card>*/}
-            {(viewMode === "list" ) && (
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle>커뮤니티</CardTitle>
-                        {viewMode === "list" && (
-                            <Button onClick={() => setViewMode("new")}>글쓰기</Button>
-                        )}
-                    </CardHeader>
+	const deletePost = (postId: string) => {
+		setPosts((prev) => prev.filter((p) => p.id !== postId));
+		setSelectedPost((prev) => (prev?.id === postId ? null : prev));
+		if (selectedPost?.id === postId) setViewMode("list");
+	};
 
-                    {viewMode === "list" && (
-                        <CardContent className="flex gap-2">
-                            <Input
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="검색: 제목/내용"
-                            />
-                        </CardContent>
-                    )}
-                </Card>
-            )}
+	const togglePostLike = (postId: string) => {
+		setPosts((prev) =>
+			prev.map((p) => {
+				if (p.id !== postId) return p;
+				const nextLiked = !p.likedByMe;
+				return {
+					...p,
+					likedByMe: nextLiked,
+					likes: Math.max(0, p.likes + (nextLiked ? 1 : -1)),
+				};
+			}),
+		);
+		setSelectedPost((prev) => {
+			if (!prev || prev.id !== postId) return prev;
+			const nextLiked = !prev.likedByMe;
+			return {
+				...prev,
+				likedByMe: nextLiked,
+				likes: Math.max(0, prev.likes + (nextLiked ? 1 : -1)),
+			};
+		});
+	};
 
-            {/* 본문 */}
-            {viewMode === "list" && (
-                <CommunityBoard posts={filtered} searchQuery={searchQuery} onSelectPost={openDetail} />
-            )}
+	const deleteComment = (postId: string, commentId: string) => {
+		setPosts((prev) =>
+			prev.map((p) => {
+				if (p.id !== postId) return p;
+				return { ...p, comments: p.comments.filter((c) => c.id !== commentId) };
+			}),
+		);
+		setSelectedPost((prev) => {
+			if (!prev || prev.id !== postId) return prev;
+			return { ...prev, comments: prev.comments.filter((c) => c.id !== commentId) };
+		});
+	};
 
-            {viewMode === "detail" && selectedPost && (
-                <PostDetail post={selectedPost}
-                            onBack={backToList}
-                            onAddComment={addComment}
-                            onUpdatePost={updatePost}
-                            onDeletePost={deletePost}
-                            onToggleLike={togglePostLike}
-                            onDeleteComment={deleteComment}
-                />
-            )}
+	useEffect(() => {
+		window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+	}, [viewMode, selectedPost?.id]);
 
-            {viewMode === "new" && (
-                <NewPostForm onSubmit={addPost} onCancel={() => setViewMode("list")} />
-            )}
-        </div>
-    );
+	const onClickWrite = () => {
+		if (!isAuthed) return goLogin();
+		setViewMode("new");
+	};
+
+	return (
+		<div className="space-y-4">
+			{/* ===== B2B Toolbar ===== */}
+			{viewMode === "list" && (
+				<Card className="border bg-white">
+					<CardHeader className="pb-3">
+						<div className="flex items-start justify-between gap-4">
+							<div>
+								<div className="text-lg font-semibold text-gray-900">커뮤니티</div>
+								<div className="mt-1 text-sm text-gray-600">
+									입찰 실무 노하우/질문/정보를 빠르게 공유하고 검색하세요.
+								</div>
+							</div>
+
+							<div className="shrink-0">
+								<Button
+									variant={isAuthed ? "default" : "outline"}
+									onClick={onClickWrite}
+									className="gap-2"
+								>
+									{isAuthed ? <Plus className="h-4 w-4" /> : null}
+									{isAuthed ? "글쓰기" : "로그인 후 글쓰기"}
+								</Button>
+							</div>
+						</div>
+					</CardHeader>
+
+					<CardContent className="pt-0 space-y-3">
+						<Tabs
+							value={category}
+							onValueChange={(v) => setCategory(v as CategoryFilter)}
+						>
+							<TabsList className="w-full justify-start">
+								<TabsTrigger value="all">
+									전체 <span className="ml-1 text-xs opacity-70">{counts.all}</span>
+								</TabsTrigger>
+								<TabsTrigger value="question">
+									질문{" "}
+									<span className="ml-1 text-xs opacity-70">{counts.question}</span>
+								</TabsTrigger>
+								<TabsTrigger value="info">
+									정보{" "}
+									<span className="ml-1 text-xs opacity-70">{counts.info}</span>
+								</TabsTrigger>
+								<TabsTrigger value="review">
+									후기{" "}
+									<span className="ml-1 text-xs opacity-70">{counts.review}</span>
+								</TabsTrigger>
+								<TabsTrigger value="discussion">
+									토론{" "}
+									<span className="ml-1 text-xs opacity-70">
+										{counts.discussion}
+									</span>
+								</TabsTrigger>
+							</TabsList>
+						</Tabs>
+
+						<div className="flex flex-col md:flex-row md:items-center gap-2">
+							<div className="relative flex-1">
+								<SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+								<Input
+									value={searchQuery}
+									onChange={(e) => setSearchQuery(e.target.value)}
+									placeholder="검색: 제목/내용/작성자"
+									className="pl-9"
+								/>
+							</div>
+
+							<div className="flex items-center gap-2">
+								<Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
+									<SelectTrigger className="w-[140px]">
+										<SelectValue placeholder="정렬" />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="latest">최신순</SelectItem>
+										<SelectItem value="popular">인기순</SelectItem>
+										<SelectItem value="views">조회순</SelectItem>
+										<SelectItem value="comments">댓글순</SelectItem>
+									</SelectContent>
+								</Select>
+
+								<div className="hidden md:block text-xs text-gray-500 tabular-nums px-2">
+									{categoryLabel[category]} · {filteredSorted.length}건
+								</div>
+							</div>
+						</div>
+
+						{!isAuthed && (
+							<Alert className="bg-slate-50">
+								<Info />
+								<AlertTitle>게스트 모드</AlertTitle>
+								<AlertDescription>
+									글쓰기/좋아요/댓글은 로그인 후 이용할 수 있습니다.
+								</AlertDescription>
+							</Alert>
+						)}
+					</CardContent>
+				</Card>
+			)}
+
+			{/* ===== List ===== */}
+			{viewMode === "list" && (
+				<CommunityBoard posts={filteredSorted} onSelectPost={openDetail} />
+			)}
+
+			{/* ===== Detail ===== */}
+			{viewMode === "detail" && selectedPost && (
+				<PostDetail
+					post={selectedPost}
+					onBack={backToList}
+					onAddComment={addComment}
+					onUpdatePost={updatePost}
+					onDeletePost={deletePost}
+					onToggleLike={togglePostLike}
+					onDeleteComment={deleteComment}
+				/>
+			)}
+
+			{/* ===== New ===== */}
+			{viewMode === "new" && (
+				<NewPostForm onSubmit={addPost} onCancel={() => setViewMode("list")} />
+			)}
+		</div>
+	);
 }
