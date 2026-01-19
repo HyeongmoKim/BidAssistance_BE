@@ -1,11 +1,8 @@
 import { useEffect, useState } from "react";
-import { fetchWishlist, updateWishlistStage, deleteWishlist } from "../api/wishlist";
-import {
-	BID_STAGE_OPTIONS,
-	isBidStage,
-	type BidStage,
-	type WishlistItem,
-} from "../types/wishlist";
+
+import { deleteWishlist, fetchWishlist, updateWishlistStage } from "../api/wishlist";
+import { BID_STAGE_OPTIONS, isBidStage, type BidStage } from "../types/bid";
+import type { WishlistItem } from "../types/wishlist";
 
 export function CartPage({
 	setGlobalLoading,
@@ -25,22 +22,11 @@ export function CartPage({
 			setGlobalLoading(true);
 			await updateWishlistStage(id, stage);
 			setWishlist((prev) =>
-				prev.map((w) => (w.wishlistId === id ? { ...w, stage } : w)),
+				prev.map((w) => (w.wishlistId === id ? { ...w, stage } : w))
 			);
 			showToast("상태 변경 완료", "success");
 		} catch {
 			showToast("상태 변경 실패", "error");
-		} finally {
-			setGlobalLoading(false);
-		}
-	};
-
-	const remove = async (id: number) => {
-		try {
-			setGlobalLoading(true);
-			await deleteWishlist(id);
-			setWishlist((prev) => prev.filter((w) => w.wishlistId !== id));
-			showToast("삭제되었습니다", "success");
 		} finally {
 			setGlobalLoading(false);
 		}
@@ -74,8 +60,6 @@ export function CartPage({
 								</option>
 							))}
 						</select>
-
-						<button onClick={() => remove(w.wishlistId)}>삭제</button>
 					</div>
 				</div>
 			))}

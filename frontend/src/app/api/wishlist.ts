@@ -1,5 +1,6 @@
 import { api } from "./client";
-import type { BidStage, WishlistItem } from "../types/wishlist";
+import type { BidStage } from "../types/bid";
+import type { WishlistItem } from "../types/wishlist";
 
 export function fetchWishlist() {
 	return api<WishlistItem[]>("/wishlist");

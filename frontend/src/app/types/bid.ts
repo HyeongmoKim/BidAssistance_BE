@@ -23,14 +23,3 @@ export const BID_STAGE_OPTIONS: Array<{ value: BidStage; label: string }> = [
 	{ value: "WON", label: "낙찰" },
 	{ value: "LOST", label: "탈락" },
 ];
-
-export interface WishlistItem {
-	wishlistId: number;
-	bidId: number;
-	title: string;
-	agency: string;
-	budget: string;
-	budgetValue: number;
-	deadline: string;
-	stage: BidStage;
-}
