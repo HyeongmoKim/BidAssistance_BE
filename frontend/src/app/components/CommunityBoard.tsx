@@ -35,16 +35,15 @@ function CategoryBadge({ category }: { category: Post["category"] }) {
 }
 
 export function CommunityBoard({ posts, onSelectPost }: CommunityBoardProps) {
-	// 모바일: 카드, 데스크톱: 테이블
 	return (
 		<div className="space-y-3">
-			{/* ===== Desktop Table (B2B) ===== */}
 			<div className="hidden md:block">
 				<Card className="border bg-white overflow-hidden">
 					<Table>
 						<TableHeader>
 							<TableRow className="bg-slate-50 hover:bg-slate-50">
-								<TableHead className="w-[90px]">유형</TableHead>
+								{/* ✅ '유형' 왼쪽 여백 */}
+								<TableHead className="w-[90px] pl-6">유형</TableHead>
 								<TableHead>제목</TableHead>
 								<TableHead className="w-[140px]">작성자</TableHead>
 								<TableHead className="w-[120px]">작성일</TableHead>
@@ -65,7 +64,8 @@ export function CommunityBoard({ posts, onSelectPost }: CommunityBoardProps) {
 										onClick={() => onSelectPost(post)}
 										className="cursor-pointer"
 									>
-										<TableCell>
+										{/* ✅ 첫 컬럼도 동일하게 pl-6 */}
+										<TableCell className="pl-6">
 											<CategoryBadge category={post.category} />
 										</TableCell>
 
@@ -121,14 +121,14 @@ export function CommunityBoard({ posts, onSelectPost }: CommunityBoardProps) {
 									<TableCell colSpan={8} className="py-12 text-center text-gray-500">
 										조건에 맞는 게시글이 없습니다.
 									</TableCell>
-								</TableRow>								
+								</TableRow>
 							)}
 						</TableBody>
 					</Table>
 				</Card>
 			</div>
 
-			{/* ===== Mobile Cards ===== */}
+			{/* 모바일은 기존 카드 유지 (원하면 모바일도 패딩 맞춰줄 수 있음) */}
 			<div className="md:hidden space-y-3">
 				{posts.map((post) => (
 					<div

@@ -142,10 +142,10 @@ export function CommunityPage() {
 				return toTime(b.createdAt) - toTime(a.createdAt);
 			}
 			if (sortKey === "comments") {
-				if (b.comments.length !== a.comments.length) return b.comments.length - a.comments.length;
+				if (b.comments.length !== a.comments.length)
+					return b.comments.length - a.comments.length;
 				return toTime(b.createdAt) - toTime(a.createdAt);
 			}
-			// latest
 			return toTime(b.createdAt) - toTime(a.createdAt);
 		});
 
@@ -286,9 +286,14 @@ export function CommunityPage() {
 		setViewMode("new");
 	};
 
+	const onSubmitSearch = (e: React.FormEvent) => {
+		e.preventDefault();
+		// 현재는 로컬 필터링이므로 별도 동작 없음.
+		// 추후 서버 검색 붙이면 여기에서 fetch 트리거하면 됨.
+	};
+
 	return (
 		<div className="space-y-4">
-			{/* ===== B2B Toolbar ===== */}
 			{viewMode === "list" && (
 				<Card className="border bg-white">
 					<CardHeader className="pb-3">
@@ -318,32 +323,58 @@ export function CommunityPage() {
 							value={category}
 							onValueChange={(v) => setCategory(v as CategoryFilter)}
 						>
-							<TabsList className="w-full justify-start">
-								<TabsTrigger value="all">
-									전체 <span className="ml-1 text-xs opacity-70">{counts.all}</span>
-								</TabsTrigger>
-								<TabsTrigger value="question">
-									질문{" "}
-									<span className="ml-1 text-xs opacity-70">{counts.question}</span>
-								</TabsTrigger>
-								<TabsTrigger value="info">
-									정보{" "}
-									<span className="ml-1 text-xs opacity-70">{counts.info}</span>
-								</TabsTrigger>
-								<TabsTrigger value="review">
-									후기{" "}
-									<span className="ml-1 text-xs opacity-70">{counts.review}</span>
-								</TabsTrigger>
-								<TabsTrigger value="discussion">
-									토론{" "}
-									<span className="ml-1 text-xs opacity-70">
-										{counts.discussion}
-									</span>
-								</TabsTrigger>
-							</TabsList>
+							<div className="flex items-center justify-between gap-3">
+								<TabsList className="w-fit justify-start rounded-lg">
+									<TabsTrigger
+										value="all"
+										className="flex-none px-3 rounded-md text-[13px]"
+									>
+										전체{" "}
+										<span className="ml-1 text-xs opacity-70">{counts.all}</span>
+									</TabsTrigger>
+									<TabsTrigger
+										value="question"
+										className="flex-none px-3 rounded-md text-[13px]"
+									>
+										질문{" "}
+										<span className="ml-1 text-xs opacity-70">{counts.question}</span>
+									</TabsTrigger>
+									<TabsTrigger
+										value="info"
+										className="flex-none px-3 rounded-md text-[13px]"
+									>
+										정보{" "}
+										<span className="ml-1 text-xs opacity-70">{counts.info}</span>
+									</TabsTrigger>
+									<TabsTrigger
+										value="review"
+										className="flex-none px-3 rounded-md text-[13px]"
+									>
+										후기{" "}
+										<span className="ml-1 text-xs opacity-70">{counts.review}</span>
+									</TabsTrigger>
+									<TabsTrigger
+										value="discussion"
+										className="flex-none px-3 rounded-md text-[13px]"
+									>
+										토론{" "}
+										<span className="ml-1 text-xs opacity-70">
+											{counts.discussion}
+										</span>
+									</TabsTrigger>
+								</TabsList>
+
+								<div className="hidden md:block text-xs text-gray-500 tabular-nums">
+									{categoryLabel[category]} · {filteredSorted.length}건
+								</div>
+							</div>
 						</Tabs>
 
-						<div className="flex flex-col md:flex-row md:items-center gap-2">
+						{/* ✅ 검색 버튼 포함: form으로 감싸고 버튼 추가 */}
+						<form
+							onSubmit={onSubmitSearch}
+							className="flex flex-col md:flex-row md:items-center gap-2"
+						>
 							<div className="relative flex-1">
 								<SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
 								<Input
@@ -355,6 +386,10 @@ export function CommunityPage() {
 							</div>
 
 							<div className="flex items-center gap-2">
+								<Button type="submit" className="whitespace-nowrap">
+									검색하기
+								</Button>
+
 								<Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
 									<SelectTrigger className="w-[140px]">
 										<SelectValue placeholder="정렬" />
@@ -366,12 +401,8 @@ export function CommunityPage() {
 										<SelectItem value="comments">댓글순</SelectItem>
 									</SelectContent>
 								</Select>
-
-								<div className="hidden md:block text-xs text-gray-500 tabular-nums px-2">
-									{categoryLabel[category]} · {filteredSorted.length}건
-								</div>
 							</div>
-						</div>
+						</form>
 
 						{!isAuthed && (
 							<Alert className="bg-slate-50">
@@ -386,12 +417,10 @@ export function CommunityPage() {
 				</Card>
 			)}
 
-			{/* ===== List ===== */}
 			{viewMode === "list" && (
 				<CommunityBoard posts={filteredSorted} onSelectPost={openDetail} />
 			)}
 
-			{/* ===== Detail ===== */}
 			{viewMode === "detail" && selectedPost && (
 				<PostDetail
 					post={selectedPost}
@@ -404,7 +433,6 @@ export function CommunityPage() {
 				/>
 			)}
 
-			{/* ===== New ===== */}
 			{viewMode === "new" && (
 				<NewPostForm onSubmit={addPost} onCancel={() => setViewMode("list")} />
 			)}
