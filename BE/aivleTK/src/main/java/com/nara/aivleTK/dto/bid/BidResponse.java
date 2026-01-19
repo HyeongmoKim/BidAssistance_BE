@@ -21,7 +21,6 @@ public class BidResponse {
     private LocalDateTime endDate;
     private LocalDateTime openDate;
     private String region;
-    private BigInteger price;
     private String organization;
     private String bidURL;
     private String bidReportURL;
@@ -35,7 +34,6 @@ public class BidResponse {
         this.endDate=bid.getEndDate();
         this.openDate=bid.getOpenDate();
         this.region=bid.getRegion();
-        this.price=bid.getPrice();
         this.organization=bid.getOrganization();
         this.bidURL=bid.getBidURL();
         this.bidReportURL=bid.getBidReportURL();

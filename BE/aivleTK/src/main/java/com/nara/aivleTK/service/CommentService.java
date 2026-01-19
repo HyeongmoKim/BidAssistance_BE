@@ -6,7 +6,9 @@ import com.nara.aivleTK.dto.comment.CommentResponse;
 import java.util.List;
 
 public interface CommentService {
-    CommentResponse createComment(int bidId, CommentCreateRequest request);
+    //null 넣으려면 Integer 써야함
+    CommentResponse createComment(Integer bidId, Integer boardId, CommentCreateRequest request);
     void deleteComment(int commentId, int userId);
     List<CommentResponse> getCommentsByBid(int bidId);
+    List<CommentResponse> getCommentsByBoard(int boardId);
 }

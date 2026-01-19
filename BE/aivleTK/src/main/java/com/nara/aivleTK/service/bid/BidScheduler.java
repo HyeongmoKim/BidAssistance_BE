@@ -21,4 +21,8 @@ public class BidScheduler {
             log.error("오류 발생",e);
         }
     }
+    @Scheduled(cron = "0 0 0 * * *") // 매일 새벽 4시 실행
+    public void scheduleUpdate() {
+        bidApiService.updateMissingData();
+    }
 }

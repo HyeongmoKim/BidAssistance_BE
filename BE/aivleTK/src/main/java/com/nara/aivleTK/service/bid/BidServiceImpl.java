@@ -49,7 +49,7 @@ public class BidServiceImpl implements BidService {
         analysisResultRepository.findByBidBidId(id).ifPresent(ar->
                 response.setAnalysisResult(
                         AnalysisResultDto.builder()
-                                .bidBidId(ar.getBidBidId())
+                                .bidBidId(ar.getBid().getBidId())
                                 .avgRate(ar.getAvgRate())
                                 .goldenRate(ar.getGoldenRate())
                                 .predictPrice(ar.getPredictedPrice())

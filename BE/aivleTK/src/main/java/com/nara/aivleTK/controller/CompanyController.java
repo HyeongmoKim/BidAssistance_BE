@@ -1,5 +1,6 @@
 package com.nara.aivleTK.controller;
 
+import com.nara.aivleTK.dto.ApiResponse;
 import com.nara.aivleTK.dto.company.CompanyRequest;
 import com.nara.aivleTK.dto.company.CompanyResponse;
 import com.nara.aivleTK.service.CompanyService;
@@ -11,26 +12,27 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/company")
+@RequestMapping("/api/compnay")
 @RequiredArgsConstructor
 public class CompanyController {
     private final CompanyService companyService;
 
-    @PostMapping
-    public ResponseEntity<CompanyResponse> createCompany(@RequestBody CompanyRequest cr) {
+    @PostMapping // 회사 생성
+    public ResponseEntity<ApiResponse<CompanyResponse>> createCompany(@RequestBody CompanyRequest cr) {
         CompanyResponse company = companyService.createCompany(cr);
-        return ResponseEntity.status(HttpStatus.CREATED).body(company);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("회사가 등록되었습니다.", company));
     }
 
     @GetMapping // 회사 전체 조회
-    public ResponseEntity<List<CompanyResponse>> getALLCompanies() {
+    public ResponseEntity<ApiResponse<List<CompanyResponse>>> getALLCompanies() {
         List<CompanyResponse> list = companyService.getAllCompanies();
-        return ResponseEntity.ok(list);
+        return ResponseEntity.ok(ApiResponse.success(list));
     }
 
     @GetMapping("/{id}") // 회사 상세 조회
-    public ResponseEntity<CompanyResponse> getCompany(@PathVariable("id") Integer id) {
+    public ResponseEntity<ApiResponse<CompanyResponse>> getCompany(@PathVariable("id") Integer id) {
         CompanyResponse company = companyService.getCompany(id);
-        return ResponseEntity.ok(company);
+        return ResponseEntity.ok(ApiResponse.success(company));
     }
+
 }
