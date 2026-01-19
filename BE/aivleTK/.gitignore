@@ -35,3 +35,8 @@ out/
 
 ### VS Code ###
 .vscode/
+
+
+# IntelliJ IDEA local config (remove from git)
+.idea/
+*.iml

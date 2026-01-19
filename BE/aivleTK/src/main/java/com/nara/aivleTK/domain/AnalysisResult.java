@@ -18,7 +18,9 @@ public class AnalysisResult {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer analysisResultId;
-    private Integer bidBidId;
+    @OneToOne
+    @JoinColumn(name = "bid_id")
+    private Bid bid;
     @Column(precision = 10, scale = 4)
     private BigDecimal goldenRate;
     private Long predictedPrice;

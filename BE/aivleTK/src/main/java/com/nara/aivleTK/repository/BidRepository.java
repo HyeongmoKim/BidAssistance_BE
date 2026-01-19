@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface BidRepository extends JpaRepository<Bid,Integer> {
@@ -16,5 +17,6 @@ public interface BidRepository extends JpaRepository<Bid,Integer> {
     List<Bid> searchDetail(@Param("name") String name, @Param("region") String region);
     List<Bid> findByBidRealIdIn(List<String> realIds);
     List<Bid> findTop200ByRegionIsNull();
+    List<Bid> findByEndDateAfterAndBidRange(LocalDateTime now, Double bidRange);
 
 }
