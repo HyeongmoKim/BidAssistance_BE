@@ -9,6 +9,7 @@ import {
 	XAxis,
 	YAxis,
 	Legend,
+	Cell,
 } from "recharts";
 
 export function Dashboard() {
@@ -114,7 +115,7 @@ export function Dashboard() {
 								>
 									{/* 원래 스샷 느낌대로 색 고정 */}
 									{regionDist.map((_, idx) => (
-										<cell
+										<Cell 
 											key={`c-${idx}`}
 											fill={["#3b82f6", "#8b5cf6", "#ec4899", "#10b981"][idx % 4]}
 										/>
