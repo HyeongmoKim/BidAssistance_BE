@@ -14,6 +14,6 @@ public class UserCreateRequest {
     private String question;
     private String answer;
     private Integer role;
-    private LocalDate birthday;
+    private LocalDate birth;
     private Integer tag;
 }

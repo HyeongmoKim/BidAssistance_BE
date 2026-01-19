@@ -41,7 +41,7 @@ public class UserServiceImpl implements UserService {
                 .email(request.getEmail())
                 .password(encodedPassword)
                 .role(0)
-                .birth(request.getBirthday())
+                .birth(request.getBirth())
                 .tag(request.getTag())
                 .question(request.getQuestion())
                 .answer(request.getAnswer())
