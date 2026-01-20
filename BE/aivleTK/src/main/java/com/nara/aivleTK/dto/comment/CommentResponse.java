@@ -1,0 +1,40 @@
+package com.nara.aivleTK.dto.comment;
+
+import com.nara.aivleTK.domain.Comment;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
+public class CommentResponse {
+    private int commentId;
+    private String content;
+    private LocalDateTime commentCreatedAt;
+    private Integer userId;
+    private String userName;
+    private int bidId;
+    private Integer parentCommentId;
+    private Integer boardId;
+
+
+    public CommentResponse(Comment comment){
+        this.commentId = comment.getCommentId();
+        this.content = comment.getCommentContent();
+        this.commentCreatedAt = comment.getCommentCreateAt();
+        if(comment.getUser()!=null){
+            this.userId = comment.getUser().getId();
+            this.userName = comment.getUser().getName();
+        }
+        if(comment.getBid()!=null){
+            this.bidId = comment.getBid().getBidId();
+        }
+        if(comment.getBoard()!=null){
+            this.boardId = comment.getBoard().getId();
+        }
+        if(comment.getParent()!=null){
+            this.parentCommentId = comment.getParent().getCommentId();
+        }
+    }
+}
