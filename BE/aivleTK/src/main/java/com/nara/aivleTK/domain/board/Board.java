@@ -6,6 +6,7 @@ import com.nara.aivleTK.domain.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,7 +39,7 @@ public class Board extends AutoTimeRecode {
     private String content;
 
     @Column(columnDefinition="BIT(3)")
-    private Integer category;
+    private String category;
 
     @Column(name="like_count", nullable = false)
     private Integer likeCount;
@@ -48,4 +49,8 @@ public class Board extends AutoTimeRecode {
 
     @Column(name="file_path", nullable=false)
     private String filePath;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
 }

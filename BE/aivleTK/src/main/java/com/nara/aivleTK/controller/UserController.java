@@ -66,7 +66,7 @@ public class UserController {
     // 5. 회원정보 수정 (PUT)
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<UserResponse>> updateUser(@PathVariable Integer id,
-            @RequestBody UserCreateRequest request) {
+                                                                @RequestBody UserCreateRequest request) {
         UserResponse updatedUser = userService.updateUser(id, request);
         return ResponseEntity.ok(ApiResponse.success("회원정보가 수정되었습니다.", updatedUser));
     }
@@ -110,7 +110,7 @@ public class UserController {
     // 9. 계정(아이디) 찾기 질문 조회
     @GetMapping("/find-email/identify")
     public ResponseEntity<ApiResponse<QuestionDto>> checkQuestion(@RequestParam String name,
-            @RequestParam LocalDate birth) {
+                                                                  @RequestParam LocalDate birth) {
         User user = userRepository.findByNameAndBirth(name, birth)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 계정이 없습니다."));
 
