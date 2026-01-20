@@ -34,16 +34,13 @@ jobs:
       - name: Build and push container image to registry
         uses: azure/container-apps-deploy-action@v2
         with:
-          appSourcePath: ${{ github.workspace }}BE/aivleTK
-          _dockerfilePathKey_: _dockerfilePath_
-          _targetLabelKey_: _targetLabel_
+          # 여기가 수정된 핵심 부분입니다
+          appSourcePath: 'BE/aivleTK'
+          dockerfilePath: 'Dockerfile'
+          
           registryUrl: aivleacr-fpc4geatahfjhygz.azurecr.io
           registryUsername: ${{ secrets.AIVLETKCON_REGISTRY_USERNAME }}
           registryPassword: ${{ secrets.AIVLETKCON_REGISTRY_PASSWORD }}
           containerAppName: aivle-tk-con
           resourceGroup: Aivle08
           imageToBuild: aivleacr-fpc4geatahfjhygz.azurecr.io/aivle-tk-con:${{ github.sha }}
-          _buildArgumentsKey_: |
-            _buildArgumentsValues_
-
-
