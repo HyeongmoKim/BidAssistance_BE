@@ -24,6 +24,8 @@ public class BidResponse {
     private String organization;
     private String bidURL;
     private String bidReportURL;
+    private BigInteger estimatePrice;
+    private Double minimumBidRate;
     private AnalysisResultDto analysisResult;
 
     public BidResponse(Bid bid){
@@ -37,6 +39,8 @@ public class BidResponse {
         this.organization=bid.getOrganization();
         this.bidURL=bid.getBidURL();
         this.bidReportURL=bid.getBidReportURL();
+        this.estimatePrice=bid.getEstimatePrice();
+        this.minimumBidRate=bid.getMinimumBidRate();
     }
 
 }

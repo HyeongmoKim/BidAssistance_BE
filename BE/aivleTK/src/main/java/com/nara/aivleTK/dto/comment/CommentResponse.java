@@ -1,5 +1,6 @@
 package com.nara.aivleTK.dto.comment;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.nara.aivleTK.domain.Comment;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,10 +12,11 @@ import java.time.LocalDateTime;
 public class CommentResponse {
     private int commentId;
     private String content;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private LocalDateTime commentCreatedAt;
     private Integer userId;
     private String userName;
-    private int bidId;
+    private Integer bidId;
     private Integer parentCommentId;
     private Integer boardId;
 
@@ -36,5 +38,6 @@ public class CommentResponse {
         if(comment.getParent()!=null){
             this.parentCommentId = comment.getParent().getCommentId();
         }
+
     }
 }

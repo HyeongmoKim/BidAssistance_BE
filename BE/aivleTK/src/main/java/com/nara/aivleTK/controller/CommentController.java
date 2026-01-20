@@ -21,7 +21,7 @@ public class CommentController {
             @PathVariable("bidId") int bidId,
             @RequestBody CommentCreateRequest request) {
         CommentResponse response = commentService.createComment(bidId, null, request);
-        return ResponseEntity.ok(ApiResponse.success("댑글이 작성되었습니다.", response));
+        return ResponseEntity.ok(ApiResponse.success("댓글이 작성되었습니다.", response));
     }
 
     @GetMapping("/bids/{bidId}/comments")
@@ -36,7 +36,7 @@ public class CommentController {
             @PathVariable("boardId") int boardId,
             @RequestBody CommentCreateRequest request) {
         CommentResponse response = commentService.createComment(null, boardId, request);
-        return ResponseEntity.ok(ApiResponse.success("댑글이 작성되었습니다.", response));
+        return ResponseEntity.ok(ApiResponse.success("댓글이 작성되었습니다.", response));
     }
 
     @GetMapping("/boards/{boardId}/comments")

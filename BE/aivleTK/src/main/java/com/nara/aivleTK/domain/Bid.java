@@ -43,7 +43,7 @@ public class Bid {
     @Column
     private BigInteger basicPrice;    // 기초금액
     @Column
-    private Double successBidRate;    // 낙찰하한율
+    private Double minimumBidRate;    // 낙찰하한율
     @Column
     private Double bidRange;          // 투찰범위 (새로 추가됨)
 }

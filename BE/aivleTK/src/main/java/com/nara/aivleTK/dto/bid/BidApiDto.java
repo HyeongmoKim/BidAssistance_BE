@@ -63,7 +63,7 @@ public class BidApiDto {
     private String basicPriceStr;
 
     @JsonProperty("sucsfbidLwltRate") // 낙찰하한율
-    private String successBidRateStr;
+    private String minimumBidRate;
 
     @JsonProperty("rsrvtnPrceRngEndRate") // ★ 투찰범위 (예: "+3")
     private String rangeEndStr;
@@ -105,7 +105,7 @@ public class BidApiDto {
                 .basicPrice(finalBasicPrice)   // 기초금액 (우선순위 로직 적용됨)
 
                 // ★ 투찰율 정보 저장
-                .successBidRate(parseDouble(this.successBidRateStr)) // 낙찰하한율
+                .minimumBidRate(parseDouble(this.minimumBidRate)) // 낙찰하한율
                 .bidRange(rangeAbs)            // 투찰범위 (Entity에 bidRange 필드가 있어야 함)
 
                 .build();
