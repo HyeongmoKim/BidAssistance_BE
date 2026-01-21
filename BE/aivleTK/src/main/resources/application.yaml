@@ -19,6 +19,7 @@ spring:
       mail.smtp.starttls.enable: true
 
 
+ # 마지막날에 db 주소 바꿔야한다고 말좀 해주세요 이거 공용이라
   datasource:
     url: jdbc:mysql://aivle08be-server.mysql.database.azure.com:3306/aivleTK?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC&sslMode=REQUIRED
     username: cufblosigq
@@ -35,7 +36,7 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
 app:
   cors:
-    allowed-origins: "http://localhost:5173,https://calm-tree-0e8ee630f.4.azurestaticapps.net"
+    allowed-origins: "http://localhost:5173, https://calm-tree-0e8ee630f.4.azurestaticapps.net/"
 
 jwt:
   secret:
