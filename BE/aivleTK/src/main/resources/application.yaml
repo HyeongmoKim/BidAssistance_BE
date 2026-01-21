@@ -21,7 +21,7 @@ spring:
 
  # 마지막날에 db 주소 바꿔야한다고 말좀 해주세요 이거 공용이라
   datasource:
-    url: jdbc:mysql://aivle08bedb.mysql.database.azure.com:3306/aivleTK?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC&sslMode=REQUIRED
+    url: jdbc:mysql://aivle08be-server.mysql.database.azure.com:3306/aivleTK?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC&sslMode=REQUIRED
     username: cufblosigq
     password: beV9i3$DWXZMhLqn
     driver-class-name: com.mysql.cj.jdbc.Driver
