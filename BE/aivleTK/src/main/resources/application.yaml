@@ -36,7 +36,6 @@ spring:
 app:
   cors:
     allowed-origins: "http://localhost:5173,https://calm-tree-0e8ee630f.4.azurestaticapps.net"
-
 jwt:
   secret:
     key: "aivleaivleaivleaivleaivle1234567aivleaivleaivleaivleaivle1234567"
