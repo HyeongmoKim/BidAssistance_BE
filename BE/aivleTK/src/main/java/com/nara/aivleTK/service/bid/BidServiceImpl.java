@@ -30,7 +30,7 @@ public class BidServiceImpl implements BidService {
                         (organization == null || organization.isBlank());
 
         List<Bid> result = noFilter
-                ? bidRepository.findAll()
+                ? bidRepository.findByEndDateAfter()
                 : bidRepository.findByNameContainingOrOrganizationContainingOrRegionContaining(
                 name == null ? "" : name,
                 organization == null ? "" : organization,
@@ -45,7 +45,7 @@ public class BidServiceImpl implements BidService {
     @Override
     @Transactional(readOnly = true)
     public List<BidResponse> getAllBid() {
-        return bidRepository.findAll()
+        return bidRepository.findByEndDateAfter()
                 .stream()
                 .map(BidResponse::new)
                 .toList();
