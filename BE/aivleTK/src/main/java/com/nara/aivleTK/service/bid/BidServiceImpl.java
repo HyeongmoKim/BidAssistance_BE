@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,7 +31,7 @@ public class BidServiceImpl implements BidService {
                         (organization == null || organization.isBlank());
 
         List<Bid> result = noFilter
-                ? bidRepository.findAll()
+                ? bidRepository.findByEndDateAfter(LocalDateTime.now())
                 : bidRepository.findByNameContainingOrOrganizationContainingOrRegionContaining(
                 name == null ? "" : name,
                 organization == null ? "" : organization,
@@ -45,7 +46,7 @@ public class BidServiceImpl implements BidService {
     @Override
     @Transactional(readOnly = true)
     public List<BidResponse> getAllBid() {
-        return bidRepository.findAll()
+        return bidRepository.findByEndDateAfter(LocalDateTime.now())
                 .stream()
                 .map(BidResponse::new)
                 .toList();
