@@ -1,5 +1,6 @@
 package com.nara.aivleTK.dto;
 
+import jakarta.persistence.Column;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -16,5 +17,7 @@ public class AnalysisResultDto {
     private BigDecimal avgRate;
     private String filepath;
     private String analysisContent;
-
+    private String contractMethod;
+    private String trackRecord;
+    private String qualification;
 }
