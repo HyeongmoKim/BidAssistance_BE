@@ -14,8 +14,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Service
 @RequiredArgsConstructor
 public class AnalysisService {
-    private AnalysisResultRepository analysisResultRepository;
-    private BidRepository bidRepository;
+    private final AnalysisResultRepository analysisResultRepository;
+    private final BidRepository bidRepository;
     private WebClient webClient;
 
     @Transactional

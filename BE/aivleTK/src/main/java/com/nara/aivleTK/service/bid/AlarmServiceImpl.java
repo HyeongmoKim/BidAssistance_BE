@@ -7,7 +7,6 @@ import com.nara.aivleTK.exception.ResourceNotFoundException;
 import com.nara.aivleTK.repository.AlarmRepository;
 import com.nara.aivleTK.repository.BidRepository;
 import com.nara.aivleTK.repository.UserRepository;
-import com.nara.aivleTK.service.MailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +21,6 @@ public class AlarmServiceImpl implements AlarmService {
     private final AlarmRepository alarmRepository;
     private final UserRepository userRepository;
     private final BidRepository bidRepository;
-    private final MailService mailService;
 
     @Override
     @Transactional
@@ -55,9 +53,5 @@ public class AlarmServiceImpl implements AlarmService {
     @Transactional
     public void deleteAlarm(Integer alarmId) {
         alarmRepository.deleteById(alarmId);
-    }
-    @Override
-    public void sendEmailNotification(String email, String subject, String content) {
-        mailService.sendAlarmNotification(email, subject, content);
     }
 }

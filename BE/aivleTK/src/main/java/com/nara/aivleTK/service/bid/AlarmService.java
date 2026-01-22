@@ -12,6 +12,4 @@ public interface AlarmService {
 
     // 특정 알림 삭제 로직
     void deleteAlarm(Integer alarmId);
-    // 이메일 알림 발송
-    void sendEmailNotification(String email, String subject, String content);
 }

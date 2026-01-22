@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 public class BidScheduler {
     private final BidApiService bidApiService;
 
-    @Scheduled(cron = "0 * * * * *") // 추후 갱신 간격 정해야함 현재 매일 1시
+    //@Scheduled(cron = "0 * * * * *") // 추후 갱신 간격 정해야함 현재 매일 1시
     public void autoFetch(){
         log.info("스케쥴러 실행");
         try{

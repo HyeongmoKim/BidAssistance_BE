@@ -1,5 +1,6 @@
 package com.nara.aivleTK.controller;
 
+import com.nara.aivleTK.dto.ApiResponse;
 import com.nara.aivleTK.dto.bid.BidResponse; // import 경로 수정
 import com.nara.aivleTK.service.bid.WishlistService;
 import lombok.RequiredArgsConstructor;
@@ -14,12 +15,13 @@ public class WishlistController {
     private final WishlistService wishlistService;
 
     @PostMapping("/toggle")
-    public ResponseEntity<String> toggleWishlist(@RequestParam Integer userId, @RequestParam Integer bidId) {
-        return ResponseEntity.ok(wishlistService.toggleWishlist(userId, bidId));
+    public ResponseEntity<ApiResponse<String>> toggleWishlist(@RequestParam Integer userId,
+            @RequestParam Integer bidId) {
+        return ResponseEntity.ok(ApiResponse.success(wishlistService.toggleWishlist(userId, bidId)));
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<List<BidResponse>> getUserWishlist(@PathVariable Integer userId) {
-        return ResponseEntity.ok(wishlistService.getUserWishlist(userId));
+    public ResponseEntity<ApiResponse<List<BidResponse>>> getUserWishlist(@PathVariable Integer userId) {
+        return ResponseEntity.ok(ApiResponse.success(wishlistService.getUserWishlist(userId)));
     }
 }
