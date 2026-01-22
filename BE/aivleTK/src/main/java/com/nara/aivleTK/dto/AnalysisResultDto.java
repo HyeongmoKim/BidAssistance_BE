@@ -2,6 +2,7 @@ package com.nara.aivleTK.dto;
 
 import com.nara.aivleTK.domain.AnalysisResult;
 import com.nara.aivleTK.domain.Attachment.Attachment;
+import jakarta.persistence.Column;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -17,6 +18,9 @@ public class AnalysisResultDto {
     private Long predictPrice;
     private BigDecimal avgRate;
     private String analysisContent;
+    private String contractMethod;
+    private String trackRecord;
+    private String qualification;
     private String pdfUrl;
 
     public static AnalysisResultDto from(AnalysisResult entity) {

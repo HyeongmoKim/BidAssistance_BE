@@ -78,6 +78,12 @@ public class BidApiDto {
     @JsonProperty("rsrvtnPrceRngEndRate") // ★ 투찰범위 (예: "+3")
     private String rangeEndStr;
 
+    @JsonProperty("cntrctCnclsMthdNm") // 계약체결방법 (예: "수의계약", "일반경쟁", "제한경쟁")
+    private String contractMethod;
+
+    @JsonProperty("sucsfbidMthdNm")    // 낙찰자결정방법 (예: "수의(견적제출)", "적격심사")
+    private String successMethod;
+
 
     // === [ 3. DTO -> Entity 변환 ] ===
     public Bid toEntity() {
