@@ -21,10 +21,11 @@ public class BidResponse {
     private LocalDateTime endDate;
     private LocalDateTime openDate;
     private String region;
-    private BigInteger price;
     private String organization;
     private String bidURL;
     private String bidReportURL;
+    private BigInteger estimatePrice;
+    private Double minimumBidRate;
     private AnalysisResultDto analysisResult;
     private BidDetailDto bidDetail;
 
@@ -36,10 +37,11 @@ public class BidResponse {
         this.endDate=bid.getEndDate();
         this.openDate=bid.getOpenDate();
         this.region=bid.getRegion();
-        this.price=bid.getPrice();
         this.organization=bid.getOrganization();
         this.bidURL=bid.getBidURL();
         this.bidReportURL=bid.getBidReportURL();
+        this.estimatePrice=bid.getEstimatePrice();
+        this.minimumBidRate=bid.getMinimumBidRate();
     }
 
 }

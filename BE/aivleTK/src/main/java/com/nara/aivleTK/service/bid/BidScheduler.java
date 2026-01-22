@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 public class BidScheduler {
     private final BidApiService bidApiService;
 
-    @Scheduled(cron = "0 * * * * *") // 추후 갱신 간격 정해야함 현재 매일 1시
+    @Scheduled(cron = "0 0 0 * * *") // 추후 갱신 간격 정해야함 현재 매일 1시
     public void autoFetch(){
         log.info("스케쥴러 실행");
         try{
@@ -20,5 +20,9 @@ public class BidScheduler {
         } catch (Exception e){
             log.error("오류 발생",e);
         }
+    }
+    @Scheduled(cron = "0 0 0 * * *") // 매일 새벽 4시 실행
+    public void scheduleUpdate() {
+        bidApiService.updateMissingData();
     }
 }

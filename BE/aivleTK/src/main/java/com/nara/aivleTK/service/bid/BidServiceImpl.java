@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,17 +25,29 @@ public class BidServiceImpl implements BidService {
     private final BidDetailService bidDetailService;
     @Override
     public List<BidResponse> searchBid(String name, String region, String organization) {
-        List<Bid> result = bidRepository.findByNameContainingOrOrganizationContainingOrRegionContaining(name, region, organization);
+
+        boolean noFilter =
+                (name == null || name.isBlank()) &&
+                        (region == null || region.isBlank()) &&
+                        (organization == null || organization.isBlank());
+
+        List<Bid> result = noFilter
+                ? bidRepository.findByEndDateAfter(LocalDateTime.now())
+                : bidRepository.findByNameContainingOrOrganizationContainingOrRegionContaining(
+                name == null ? "" : name,
+                organization == null ? "" : organization,
+                region == null ? "" : region
+        );
+
         return result.stream()
                 .map(BidResponse::new)
-                .collect(Collectors.toList());
-
+                .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<BidResponse> getAllBid() {
-        return bidRepository.findAll()
+        return bidRepository.findByEndDateAfter(LocalDateTime.now())
                 .stream()
                 .map(BidResponse::new)
                 .toList();
@@ -50,7 +63,7 @@ public class BidServiceImpl implements BidService {
         analysisResultRepository.findByBidBidId(id).ifPresent(ar->
                 response.setAnalysisResult(
                         AnalysisResultDto.builder()
-                                .bidBidId(ar.getBidBidId())
+                                .bidBidId(ar.getBid().getBidId())
                                 .avgRate(ar.getAvgRate())
                                 .goldenRate(ar.getGoldenRate())
                                 .predictPrice(ar.getPredictedPrice())
