@@ -42,7 +42,7 @@ public class BoardListItemResponse {
                 .likes(board.getLikeCount())
                 .likedByMe(likedByMe)
                 .commentCount(commentCount)
-                .attachmentCount(board.getFilePath() != null && !board.getFilePath().isEmpty() ? 1 : 0)
+                .attachmentCount(board.getAttachments() != null ? board.getAttachments().size() : 0)
                 .build();
     }
 }

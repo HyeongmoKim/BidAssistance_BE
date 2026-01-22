@@ -27,6 +27,7 @@ public class BidResponse {
     private BigInteger estimatePrice;
     private Double minimumBidRate;
     private AnalysisResultDto analysisResult;
+    private BidDetailDto bidDetail;
 
     public BidResponse(Bid bid){
         this.id = bid.getBidId();

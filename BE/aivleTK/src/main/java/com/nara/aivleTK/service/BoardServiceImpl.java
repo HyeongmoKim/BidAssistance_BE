@@ -1,5 +1,6 @@
 package com.nara.aivleTK.service;
 
+import com.nara.aivleTK.domain.Attachment.Attachment;
 import com.nara.aivleTK.domain.board.Board;
 import com.nara.aivleTK.domain.user.User;
 import com.nara.aivleTK.dto.board.BoardListRequest;
@@ -8,9 +9,11 @@ import com.nara.aivleTK.dto.board.BoardRequest;
 import com.nara.aivleTK.dto.board.BoardResponse;
 import com.nara.aivleTK.dto.board.BoardListItemResponse;
 import com.nara.aivleTK.dto.board.CategoryCountsResponse;
+import com.nara.aivleTK.repository.AttachmentRepository;
 import com.nara.aivleTK.repository.BoardRepository;
 import com.nara.aivleTK.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.apache.qpid.proton.amqp.transport.Attach;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -28,18 +31,29 @@ public class BoardServiceImpl implements BoardService {
 
     private final BoardRepository boardRepository;
     private final UserRepository userRepository;
+    private final AttachmentRepository attachmentRepository;
 
     @Transactional // 게시글 생성
     public BoardResponse creatPost(BoardRequest br) {
-        User user = userRepository.findById(br.getUserId()).orElseThrow();
+        User user = userRepository.findById(br.getUserId()).orElseThrow(()-> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         Board board = Board.builder()
                 .title(br.getTitle()).content(br.getContent())
                 .user(user).category(br.getCategory())
-                .filePath(br.getFilePath()).likeCount(0)
-                .viewCount(0).build();
+                .likeCount(0).viewCount(0).build();
 
-        return BoardResponse.from(boardRepository.save(board));
+        Board savedBoard = boardRepository.save(board);
+
+        // 첨부 업로드
+        if (br.getAttachmentIds() != null && !br.getAttachmentIds().isEmpty()) {
+            List<Attachment> attachments = attachmentRepository.findAllById(br.getAttachmentIds());
+
+            for (Attachment attachment : attachments) {
+                attachment.setBoard(savedBoard);
+            }
+        }
+
+        return BoardResponse.from(savedBoard);
     }
 
     @Transactional // 게시글 불러오기
@@ -61,7 +75,6 @@ public class BoardServiceImpl implements BoardService {
         board.setTitle(br.getTitle());
         board.setCategory(br.getCategory());
         board.setContent(br.getContent());
-        board.setFilePath(br.getFilePath());
 
         return BoardResponse.from(boardRepository.save(board));
     }

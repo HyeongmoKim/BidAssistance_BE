@@ -1,6 +1,7 @@
 package com.nara.aivleTK.domain.board;
 
 import com.nara.aivleTK.common.AutoTimeRecode;
+import com.nara.aivleTK.domain.Attachment.Attachment;
 import com.nara.aivleTK.domain.Comment;
 import com.nara.aivleTK.domain.user.User;
 import jakarta.persistence.*;
@@ -47,10 +48,10 @@ public class Board extends AutoTimeRecode {
     @Column(name="view_count", nullable = false)
     private Integer viewCount;
 
-    @Column(name="file_path", nullable=false)
-    private String filePath;
-
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval=true)
+    private List<Attachment> attachments = new ArrayList<>();
 }

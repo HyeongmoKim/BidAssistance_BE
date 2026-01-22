@@ -2,10 +2,7 @@ package com.nara.aivleTK.controller;
 
 import com.nara.aivleTK.domain.board.Board;
 import com.nara.aivleTK.dto.ApiResponse;
-import com.nara.aivleTK.dto.board.BoardListRequest;
-import com.nara.aivleTK.dto.board.BoardListResponse;
-import com.nara.aivleTK.dto.board.BoardRequest;
-import com.nara.aivleTK.dto.board.BoardResponse;
+import com.nara.aivleTK.dto.board.*;
 import com.nara.aivleTK.exception.ResourceNotFoundException;
 import com.nara.aivleTK.exception.UnauthorizedException;
 import com.nara.aivleTK.repository.BoardRepository;
@@ -14,6 +11,8 @@ import com.nara.aivleTK.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.File;
 
 @RestController
 @RequestMapping("/api/board")

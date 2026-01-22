@@ -18,7 +18,6 @@ public class BoardResponse {
     private String category;
     private Integer likeCount;
     private Integer viewCount;
-    private String filePath;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -27,7 +26,6 @@ public class BoardResponse {
                 .id(board.getId()).title(board.getTitle())
                 .userName(board.getUser().getName()).content(board.getContent())
                 .category(board.getCategory()).likeCount(board.getLikeCount())
-                .viewCount(board.getViewCount()).filePath(board.getFilePath())
                 .createdAt(board.getCreatedAt()).updatedAt(board.getUpdatedAt()).build();
     }
     public BoardResponse(Board board) {
@@ -39,7 +37,6 @@ public class BoardResponse {
         this.content = board.getContent();
         this.likeCount = board.getLikeCount();
         this.viewCount = board.getViewCount();
-        this.filePath = board.getFilePath();
         this.createdAt = board.getCreatedAt();
         this.updatedAt = board.getUpdatedAt();
     }

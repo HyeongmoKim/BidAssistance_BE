@@ -18,5 +18,6 @@ public interface BidRepository extends JpaRepository<Bid,Integer> {
     List<Bid> findByBidRealIdIn(List<String> realIds);
     List<Bid> findTop200ByRegionIsNull();
     List<Bid> findByEndDateAfterAndBidRange(LocalDateTime now, Double bidRange);
+    List<Bid> findByEndDateAfter(LocalDateTime now);
 
 }

@@ -21,6 +21,7 @@ public class AnalysisService {
     private final AnalysisResultRepository analysisResultRepository;
     private final BidRepository bidRepository;
     private final WebClient webClient;
+    private final AttachmentService attachmentService;
 
     @Async
     @Transactional
@@ -55,8 +56,9 @@ public class AnalysisService {
             entity.setGoldenRate(response.getGoldenRate());
             entity.setPredictedPrice(response.getPredictPrice());
             entity.setAvgRate(response.getAvgRate());
-            entity.setFilepath(response.getFilepath());
             entity.setAnalysisContent(response.getAnalysisContent());
+            entity.setPdfUrl(response.getPdfUrl());
+
 
             analysisResultRepository.save(entity);
             log.info("AI 분석 결과 저장 완료 [공고번호: {}]", bid.getBidRealId());

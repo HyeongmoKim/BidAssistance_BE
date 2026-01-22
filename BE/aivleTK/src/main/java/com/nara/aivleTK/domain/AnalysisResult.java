@@ -1,5 +1,6 @@
 package com.nara.aivleTK.domain;
 
+import com.nara.aivleTK.domain.Attachment.Attachment;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -8,6 +9,8 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -27,9 +30,11 @@ public class AnalysisResult {
     @Column(precision = 10, scale = 4)
     private BigDecimal avgRate;
     private LocalDateTime analysisDate;
-
     @Column(length = 200)
     private String filepath;
     @Column(length = 1000)
     private String analysisContent;
+
+    @Column(length = 500)
+    private String pdfUrl;
 }

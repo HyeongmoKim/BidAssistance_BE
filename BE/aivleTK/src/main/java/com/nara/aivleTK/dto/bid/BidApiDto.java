@@ -41,10 +41,20 @@ public class BidApiDto {
 
     @JsonProperty("ntceSpecDocUrl1")
     private String bidReportUrl;
-
     @JsonProperty("ntceSpecFileNm1")
-    private String bidFileName;
-
+    private String bidReportName;
+    @JsonProperty("ntceSpecDocUrl2")
+    private String bidReportUrl2;
+    @JsonProperty("ntceSpecFileNm2")
+    private String bidReportName2;
+    @JsonProperty("ntceSpecDocUrl3")
+    private String bidReportUrl3;
+    @JsonProperty("ntceSpecFileNm3")
+    private String bidReportName3;
+    @JsonProperty("ntceSpecDocUrl4")
+    private String bidReportUrl4;
+    @JsonProperty("ntceSpecFileNm4")
+    private String bidReportName4;
     @JsonProperty("bidNtceDtlUrl")
     private String bidURL;
 
@@ -94,8 +104,14 @@ public class BidApiDto {
                 .organization(this.organization)
                 .region(this.region)
                 .bidURL(this.bidURL)
-                .bidFileName(this.bidFileName)
+                .bidReportName(this.bidReportName)
                 .bidReportURL(this.bidReportUrl)
+                .bidReportName2(this.bidReportName2)
+                .bidReportURL2(this.bidReportUrl2)
+                .bidReportName3(this.bidReportName3)
+                .bidReportURL3(this.bidReportUrl3)
+                .bidReportName4(this.bidReportName4)
+                .bidReportURL4(this.bidReportUrl4)
                 .startDate(parseDate(this.startDateStr, formatter))
                 .endDate(parseDate(this.endDateStr, formatter))
                 .openDate(parseDate(this.openDateStr, formatter))
