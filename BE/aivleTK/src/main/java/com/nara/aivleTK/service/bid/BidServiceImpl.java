@@ -21,6 +21,7 @@ public class BidServiceImpl implements BidService {
 
     private final BidRepository bidRepository;
     private final AnalysisResultRepository analysisResultRepository;
+    private final BidDetailService bidDetailService;
     @Override
     public List<BidResponse> searchBid(String name, String region, String organization) {
         List<Bid> result = bidRepository.findByNameContainingOrOrganizationContainingOrRegionContaining(name, region, organization);
@@ -58,6 +59,7 @@ public class BidServiceImpl implements BidService {
                                 .build()
                 )
         );
+        bidDetailService.getByBidId(id).ifPresent(response::setBidDetail);
         return response;
     }
 }

@@ -14,13 +14,12 @@ spring:
 
   datasource:
     # 1. url: localhost(내 컴퓨터) 주소로 변경하고, SSL은 로컬에서 필요 없으므로 false로 바꿉니다.
-    url: jdbc:mysql://localhost:3306/aivletk?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-
+    url: jdbc:mysql://localhost:3306/aivletk?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     # 2. username: 로컬 MySQL의 기본 아이디인 root를 입력합니다.
     username: root
 
     # 3. password: ★매우 중요★ Azure 비번이 아닌, 내 PC에 MySQL 설치할 때 설정한 비번을 넣으세요.
-    password: test1234!234
+    password: test1234
 
     driver-class-name: com.mysql.cj.jdbc.Driver
 
@@ -35,3 +34,6 @@ spring:
 app:
   cors:
     allowed-origins: http://localhost:3000
+
+fastapi:
+  base-url: http://localhost:9999

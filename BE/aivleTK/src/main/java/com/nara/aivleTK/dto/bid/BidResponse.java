@@ -26,6 +26,7 @@ public class BidResponse {
     private String bidURL;
     private String bidReportURL;
     private AnalysisResultDto analysisResult;
+    private BidDetailDto bidDetail;
 
     public BidResponse(Bid bid){
         this.id = bid.getBidId();
