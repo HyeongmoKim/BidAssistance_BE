@@ -56,12 +56,27 @@ public class BidApiService {
             if (itemsNode.isMissingNode() || itemsNode.isEmpty()) return "데이터 없음";
 
             List<Bid> fetchedBids = new ArrayList<>();
+
+            // [헬퍼 함수] 필터링 로직 (수의계약, 시담 거르기)
+
             if (itemsNode.isArray()) {
+                // 1. 목록이 여러 개일 때
                 for (JsonNode node : itemsNode) {
-                    fetchedBids.add(mapper.treeToValue(node, BidApiDto.class).toEntity());
+                    BidApiDto dto = mapper.treeToValue(node, BidApiDto.class);
+
+                    // ★ [검문소] 불순분자(수의, 시담) 색출
+                    if (isSkipTarget(dto)) continue; // 통과 못하면 다음으로(skip)
+
+                    fetchedBids.add(dto.toEntity());
                 }
             } else {
-                fetchedBids.add(mapper.treeToValue(itemsNode.path("item"), BidApiDto.class).toEntity());
+                // 2. 목록이 딱 1개일 때 (이 경우도 가끔 있음)
+                BidApiDto dto = mapper.treeToValue(itemsNode.path("item"), BidApiDto.class);
+
+                // ★ [검문소] 여기도 똑같이 검사
+                if (!isSkipTarget(dto)) {
+                    fetchedBids.add(dto.toEntity());
+                }
             }
 
             // === 2. [중복 제거] ===
@@ -255,5 +270,17 @@ public class BidApiService {
         }
 
         log.info("=== [데이터 보정] 종료. 총 {}건 업데이트 완료 ===", updateCount);
+    }
+    private boolean isSkipTarget(BidApiDto dto) {
+        String method = dto.getContractMethod(); // 계약방법
+        String title = dto.getName();            // 공고명
+
+        // 1. 계약방법에 '수의'가 있으면 거름 (true)
+        if (method != null && method.contains("수의")) return true;
+
+        // 2. 제목에 '수의'나 '시담'이 있으면 거름 (true)
+        if (title != null && (title.contains("시담") || title.contains("수의"))) return true;
+
+        return false; // 통과 (저장해도 됨)
     }
 }

@@ -37,4 +37,10 @@ public class AnalysisResult {
 
     @Column(length = 500)
     private String pdfUrl;
+    @Column(length = 500)
+    private String contractMethod;
+    @Column(length = 500)
+    private String trackRecord;
+    @Column(length = 500)
+    private String qualification;
 }
