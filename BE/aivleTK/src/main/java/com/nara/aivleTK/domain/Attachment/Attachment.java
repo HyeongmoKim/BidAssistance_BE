@@ -36,8 +36,6 @@ public class Attachment {
     @JoinColumn(name = "analysisResultId")
     private AnalysisResult analysisResult;
 
-    public void
-
     public Attachment(String fileName, String storeName, String url) {
         this.fileName = fileName;
         this.storeName = storeName;
