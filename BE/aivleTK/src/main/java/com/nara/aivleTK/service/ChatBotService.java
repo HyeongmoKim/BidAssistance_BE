@@ -41,7 +41,13 @@ public class ChatBotService {
         }
         List<Bid> searchResults = new ArrayList<>();
         if (intent != null && "search".equals(intent.getType())) {
-            searchResults = bidRepository.searchDetail(intent.getKeyword(), intent.getRegion());
+            searchResults = bidRepository.searchDetail(
+                    intent.getKeyword(),
+                    intent.getRegion(),
+                    intent.getAgency(),   // 추가됨 (없으면 null)
+                    intent.getMinPrice(), // 추가됨 (없으면 null)
+                    intent.getMaxPrice()  // 추가됨 (없으면 null)
+            );
             if (searchResults.size() > 5) {
                 searchResults = searchResults.subList(0, 5);
             }
