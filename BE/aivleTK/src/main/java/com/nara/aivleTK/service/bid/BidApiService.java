@@ -5,8 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nara.aivleTK.domain.Bid;
 import com.nara.aivleTK.dto.bid.BidApiDto;
 import com.nara.aivleTK.dto.bid.BidPriceApiDto; // ★ 추가: 가격정보 DTO
+import com.nara.aivleTK.repository.AttachmentRepository;
 import com.nara.aivleTK.repository.BidRepository;
 import com.nara.aivleTK.service.AnalysisService;
+import com.nara.aivleTK.service.AttachmentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,7 +32,7 @@ public class BidApiService {
     private final BidRepository bidRepository;
     private final AnalysisService analysisService;
     private final String SERVICE_KEY = "c1588436fef59fe2109d0eb3bd03747f61c57a482a6d0052de14f85b0bb02fb2";
-
+    private final AttachmentService attachmentService;
     public String fetchAndSaveBidData() {
         try {
             // === 1. [공고 목록 API 호출] ===
@@ -131,6 +133,10 @@ public class BidApiService {
                     try {
                         analysisService.analyzeAndSave(bid.getBidId());
                         analysisCount++;
+                        attachmentService.saveAttachmentInfoOnly(bid, bid.getBidReportName(), bid.getBidReportURL());
+                        attachmentService.saveAttachmentInfoOnly(bid, bid.getBidReportName2(), bid.getBidReportURL2());
+                        attachmentService.saveAttachmentInfoOnly(bid, bid.getBidReportName3(), bid.getBidReportURL3());
+                        attachmentService.saveAttachmentInfoOnly(bid, bid.getBidReportName4(), bid.getBidReportURL4());
                     } catch (Exception e) {
                         log.error("AI 분석 요청 실패 (ID: {}): {}", bid.getBidId(), e.getMessage());
                     }

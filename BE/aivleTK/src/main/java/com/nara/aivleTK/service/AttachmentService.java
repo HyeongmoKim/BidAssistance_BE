@@ -8,12 +8,14 @@ import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.azure.storage.blob.models.BlobHttpHeaders;
 import com.azure.storage.blob.options.BlobParallelUploadOptions;
 import com.nara.aivleTK.domain.Attachment.Attachment;
+import com.nara.aivleTK.domain.Bid;
 import com.nara.aivleTK.repository.AttachmentRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
@@ -68,6 +70,25 @@ public class AttachmentService {
         }
         return attachments;
     }
+
+    private final RestTemplate restTemplate;
+
+    public void saveAttachmentInfoOnly(Bid bid, String fileName, String fileUrl){
+        if(fileUrl == null||fileUrl.isBlank()||fileName==null){
+            return;
+        }
+        try{
+            Attachment attachment = new Attachment();
+            attachment.setBid(bid);
+            attachment.setFileName(fileName);
+            attachment.setUrl(fileUrl);
+            attachment.setStoreName(null);
+            attachmentRepository.save(attachment);
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
 
     public Attachment uploadPDF(String fileName, byte[] pdfData) {
 

@@ -1,6 +1,7 @@
 package com.nara.aivleTK.domain.Attachment;
 
 import com.nara.aivleTK.domain.AnalysisResult;
+import com.nara.aivleTK.domain.Bid;
 import com.nara.aivleTK.domain.board.Board;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -28,8 +29,14 @@ public class Attachment {
     private Board board;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "bid_id")
+    private Bid bid;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "analysisResultId")
     private AnalysisResult analysisResult;
+
+    public void
 
     public Attachment(String fileName, String storeName, String url) {
         this.fileName = fileName;
