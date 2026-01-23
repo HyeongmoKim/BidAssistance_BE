@@ -203,7 +203,6 @@ CREATE TABLE IF NOT EXISTS `board` (
   `content` VARCHAR(500) NOT NULL,
   `like_count` INT NOT NULL,
   `view_count` INT NOT NULL,
-  `date` TIMESTAMP NOT NULL,
   `file_path` VARCHAR(300) NULL,
   `created_at` TIMESTAMP NOT NULL,
   `updated_at` TIMESTAMP NULL,
