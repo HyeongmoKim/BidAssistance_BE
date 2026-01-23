@@ -4,8 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nara.aivleTK.domain.Bid;
 import com.nara.aivleTK.dto.bid.BidApiDto;
-import com.nara.aivleTK.dto.bid.BidPriceApiDto; // ★ 추가: 가격정보 DTO
-import com.nara.aivleTK.repository.AttachmentRepository;
+import com.nara.aivleTK.dto.bid.BidPriceApiDto;
 import com.nara.aivleTK.repository.BidRepository;
 import com.nara.aivleTK.service.AnalysisService;
 import com.nara.aivleTK.service.AttachmentService;
@@ -20,7 +19,9 @@ import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -33,6 +34,7 @@ public class BidApiService {
     private final AnalysisService analysisService;
     private final String SERVICE_KEY = "c1588436fef59fe2109d0eb3bd03747f61c57a482a6d0052de14f85b0bb02fb2";
     private final AttachmentService attachmentService;
+
     public String fetchAndSaveBidData() {
         try {
             // === 1. [공고 목록 API 호출] ===
@@ -57,37 +59,38 @@ public class BidApiService {
 
             if (itemsNode.isMissingNode() || itemsNode.isEmpty()) return "데이터 없음";
 
-            List<Bid> fetchedBids = new ArrayList<>();
-
-            // [헬퍼 함수] 필터링 로직 (수의계약, 시담 거르기)
+            // [수정] DTO 원본을 담을 리스트 (URL 정보 보존용)
+            List<BidApiDto> validDtos = new ArrayList<>();
 
             if (itemsNode.isArray()) {
-                // 1. 목록이 여러 개일 때
                 for (JsonNode node : itemsNode) {
                     BidApiDto dto = mapper.treeToValue(node, BidApiDto.class);
-
-                    // ★ [검문소] 불순분자(수의, 시담) 색출
-                    if (isSkipTarget(dto)) continue; // 통과 못하면 다음으로(skip)
-
-                    fetchedBids.add(dto.toEntity());
+                    if (!isSkipTarget(dto)) validDtos.add(dto);
                 }
             } else {
-                // 2. 목록이 딱 1개일 때 (이 경우도 가끔 있음)
                 BidApiDto dto = mapper.treeToValue(itemsNode.path("item"), BidApiDto.class);
-
-                // ★ [검문소] 여기도 똑같이 검사
-                if (!isSkipTarget(dto)) {
-                    fetchedBids.add(dto.toEntity());
-                }
+                if (!isSkipTarget(dto)) validDtos.add(dto);
             }
 
             // === 2. [중복 제거] ===
-            List<String> realIdsToCheck = fetchedBids.stream().map(Bid::getBidRealId).collect(Collectors.toList());
+            // DTO에서 realId를 만들어내서 중복 체크 (DTO의 toEntity 로직과 동일하게 생성해야 함)
+            // 보통: dto.getBidNtceNo() + "-" + dto.getBidNtceOrd()
+
+            // DTO를 쉽게 찾기 위한 Map 생성 (Key: RealId, Value: DTO)
+            Map<String, BidApiDto> dtoMap = new HashMap<>();
+            for (BidApiDto dto : validDtos) {
+                String realId = dto.getBidNtceNo() + "-" + dto.getBidNtceOrd();
+                dtoMap.put(realId, dto);
+            }
+
+            List<String> realIdsToCheck = new ArrayList<>(dtoMap.keySet());
             List<Bid> existingBids = bidRepository.findByBidRealIdIn(realIdsToCheck);
             Set<String> existingIds = existingBids.stream().map(Bid::getBidRealId).collect(Collectors.toSet());
 
-            List<Bid> newBidsToSave = fetchedBids.stream()
-                    .filter(bid -> !existingIds.contains(bid.getBidRealId()))
+            // 중복되지 않은 새로운 Bid 엔티티 생성
+            List<Bid> newBidsToSave = validDtos.stream()
+                    .filter(dto -> !existingIds.contains(dto.getBidNtceNo() + "-" + dto.getBidNtceOrd()))
+                    .map(BidApiDto::toEntity) // 이 시점에 URL 정보는 Bid 엔티티에 들어가지 않음 (DTO 수정 전제)
                     .collect(Collectors.toList());
 
             // === 3. [상세 정보 병합 Loop] ===
@@ -97,51 +100,56 @@ public class BidApiService {
                     String permittedRegion = getPermittedRegion(bid.getBidRealId());
                     bid.setRegion(permittedRegion);
 
-                    // (B) ★ [수정됨] 기초금액 로직: API 조회 시도 -> 실패 시 계산(1.1배)
+                    // (B) 기초금액 로직
                     BidPriceApiDto priceInfo = getBidPriceInfo(bid.getBidRealId());
 
                     if (priceInfo != null && !priceInfo.getBasicPrice().equals(java.math.BigInteger.ZERO)) {
-                        // Case 1: API에 정확한 기초금액이 있는 경우
                         bid.setBasicPrice(priceInfo.getBasicPrice());
                         bid.setBidRange(priceInfo.getBidRangeAbs());
                     } else {
-                        // Case 2: API에 데이터가 없는 경우 (404 or 0) -> Fallback: 추정금액 * 1.1
                         if (bid.getEstimatePrice() != null) {
-                            // BigInteger -> BigDecimal 변환 후 1.1 곱하기 -> 다시 BigInteger
                             java.math.BigDecimal estPrice = new java.math.BigDecimal(bid.getEstimatePrice());
                             java.math.BigInteger calculatedBasicPrice = estPrice.multiply(java.math.BigDecimal.valueOf(1.1)).toBigInteger();
-
                             bid.setBasicPrice(calculatedBasicPrice);
                         }
-                        // 투찰범위는 기본값(예: 0.0 또는 2.0/3.0 등 정책에 맞게) 설정하거나 비워둠
                     }
-
-                    // 서버 부하 방지용 딜레이
                     Thread.sleep(50);
-
                 } catch (Exception e) {
                     log.error("상세 정보 병합 중 에러 (ID: {}): {}", bid.getBidRealId(), e.getMessage());
                 }
             }
 
-            // === 4. [최종 저장 및 AI 분석 요청] ===
+            // === 4. [최종 저장 및 후속 처리] ===
             if (!newBidsToSave.isEmpty()) {
+                // DB 저장 (여기서 bidId가 생성됨)
                 List<Bid> savedBids = bidRepository.saveAll(newBidsToSave);
 
                 int analysisCount = 0;
+                int attachmentCount = 0;
+
                 for (Bid bid : savedBids) {
                     try {
+                        // 1. AI 분석 요청
                         analysisService.analyzeAndSave(bid.getBidId());
                         analysisCount++;
-                        attachmentService.saveAttachmentInfoOnly(bid, bid.getBidReportName(), bid.getBidReportURL());
-                        attachmentService.saveAttachmentInfoOnly(bid, bid.getBidReportName2(), bid.getBidReportURL2());
-                        attachmentService.saveAttachmentInfoOnly(bid, bid.getBidReportName3(), bid.getBidReportURL3());
-                        attachmentService.saveAttachmentInfoOnly(bid, bid.getBidReportName4(), bid.getBidReportURL4());
+
+                        // 2. [핵심] DTO Map에서 원본 DTO를 찾아 URL 정보를 Attachment 테이블에 저장
+                        BidApiDto sourceDto = dtoMap.get(bid.getBidRealId());
+
+                        if (sourceDto != null) {
+                            // DTO에 있는 URL을 사용 (Bid 객체에는 이제 URL 필드가 없다고 가정)
+                            attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName(), sourceDto.getBidReportUrl());
+                            attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName2(), sourceDto.getBidReportUrl2());
+                            attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName3(), sourceDto.getBidReportUrl3());
+                            attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName4(), sourceDto.getBidReportUrl4());
+                            attachmentCount++;
+                        }
+
                     } catch (Exception e) {
-                        log.error("AI 분석 요청 실패 (ID: {}): {}", bid.getBidId(), e.getMessage());
+                        log.error("후속 처리 실패 (ID: {}): {}", bid.getBidId(), e.getMessage());
                     }
                 }
-                return "신규 " + savedBids.size() + "건 저장 완료, " + analysisCount + "건 분석 요청됨";
+                return "신규 " + savedBids.size() + "건 저장 완료, " + analysisCount + "건 분석 요청, 첨부파일 연결 완료";
             }
 
             return "신규 데이터 없음";
@@ -206,7 +214,6 @@ public class BidApiService {
         }
 
         try {
-            // URL: getBidPblancListInfoCnstwkBsisAmount (공사 기초금액 조회)
             StringBuilder urlBuilder = new StringBuilder("http://apis.data.go.kr/1230000/ad/BidPublicInfoService/getBidPblancListInfoCnstwkBsisAmount");
             urlBuilder.append("?" + URLEncoder.encode("serviceKey", "UTF-8") + "=" + SERVICE_KEY);
             urlBuilder.append("&" + URLEncoder.encode("pageNo", "UTF-8") + "=" + URLEncoder.encode("1", "UTF-8"));
@@ -223,7 +230,6 @@ public class BidApiService {
 
             if (itemsNode.isMissingNode() || itemsNode.isEmpty()) return null;
 
-            // 아이템이 여러 개일 수도 있지만, 보통 공고당 하나이거나 첫 번째가 메인입니다.
             JsonNode targetNode;
             if (itemsNode.isArray()) {
                 targetNode = itemsNode.get(0);
@@ -231,62 +237,46 @@ public class BidApiService {
                 targetNode = itemsNode.path("item");
             }
 
-            // DTO로 변환
             return mapper.treeToValue(targetNode, BidPriceApiDto.class);
 
         } catch (java.io.FileNotFoundException e) {
-            // 404 데이터 없음 -> null 반환하여 위에서 *1.1 계산 로직을 타게 유도
             return null;
         } catch (Exception e) {
             log.warn("기초금액 API 호출 실패 [ID: {}] : {}", fullBidNtceNo, e.toString());
             return null;
         }
     }
-    @Transactional // DB 수정을 위해 필수
+
+    @Transactional
     public void updateMissingData() {
         log.info("=== [데이터 보정] 누락된 기초금액/투찰범위 재수집 시작 ===");
-
-        // 1. 보정 대상 조회 (마감 안 됐고, 투찰범위가 0.0인 것들)
         List<Bid> incompleteBids = bidRepository.findByEndDateAfterAndBidRange(LocalDateTime.now(), 0.0);
-
         int updateCount = 0;
 
         for (Bid bid : incompleteBids) {
             try {
-                // 2. API 다시 조회 (기존에 만든 메서드 재사용!)
                 BidPriceApiDto priceInfo = getBidPriceInfo(bid.getBidRealId());
-
-                // 3. 데이터가 이제 떴다면? -> Update
                 if (priceInfo != null && !priceInfo.getBasicPrice().equals(java.math.BigInteger.ZERO)) {
-                    bid.setBasicPrice(priceInfo.getBasicPrice()); // 진짜 기초금액으로 덮어쓰기
-                    bid.setBidRange(priceInfo.getBidRangeAbs());  // 투찰범위 저장
-
-                    // (선택사항) 값이 바뀌었으니 AI 분석도 다시 요청할 수 있음
-                    // analysisService.analyzeAndSave(bid.getBidId());
-
+                    bid.setBasicPrice(priceInfo.getBasicPrice());
+                    bid.setBidRange(priceInfo.getBidRangeAbs());
                     updateCount++;
                     log.info("데이터 업데이트 성공 (ID: {})", bid.getBidRealId());
                 }
-
-                Thread.sleep(50); // API 보호
-
+                Thread.sleep(50);
             } catch (Exception e) {
                 log.warn("보정 중 에러 (ID: {}): {}", bid.getBidRealId(), e.getMessage());
             }
         }
-
         log.info("=== [데이터 보정] 종료. 총 {}건 업데이트 완료 ===", updateCount);
     }
+
     private boolean isSkipTarget(BidApiDto dto) {
-        String method = dto.getContractMethod(); // 계약방법
-        String title = dto.getName();            // 공고명
+        String method = dto.getContractMethod();
+        String title = dto.getName();
 
-        // 1. 계약방법에 '수의'가 있으면 거름 (true)
         if (method != null && method.contains("수의")) return true;
-
-        // 2. 제목에 '수의'나 '시담'이 있으면 거름 (true)
         if (title != null && (title.contains("시담") || title.contains("수의"))) return true;
 
-        return false; // 통과 (저장해도 됨)
+        return false;
     }
 }
