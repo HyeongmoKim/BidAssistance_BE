@@ -37,10 +37,6 @@ public class Attachment {
     @JoinColumn(name = "analysisResultId")
     private AnalysisResult analysisResult;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "bidId")
-    private Bid bid;
-
     public Attachment(String fileName, String storeName, String url) {
         this.fileName = fileName;
         this.storeName = storeName;
