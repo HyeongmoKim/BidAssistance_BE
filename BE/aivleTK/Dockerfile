@@ -10,10 +10,5 @@ COPY build/libs/*.jar app.jar
 
 EXPOSE 8080
 
-# javaagent 활성화 (핵심)
-ENTRYPOINT [
-  "java",
-  "-javaagent:/agent/applicationinsights-agent.jar",
-  "-jar",
-  "app.jar"
-]
+# javaagent 활성화
+ENTRYPOINT ["java","-javaagent:/agent/applicationinsights-agent.jar","-jar","app.jar"]
