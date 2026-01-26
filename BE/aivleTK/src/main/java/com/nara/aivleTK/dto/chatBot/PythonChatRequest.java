@@ -14,6 +14,6 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PythonChatRequest {
-    private String prompt;
-    private List<Map<String, Object>> contextData;
+    private String query;
+    private String thread_id;
 }
