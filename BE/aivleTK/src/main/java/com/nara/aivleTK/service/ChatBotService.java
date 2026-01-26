@@ -200,9 +200,14 @@ public class ChatBotService {
 
             return new ChatResponse(formatBidsToString(searchResults));
 
+            // ChatBotService.java의 아래쪽 catch 블록 수정
+
         } catch (Exception e) {
-            log.error("검색 처리 중 오류: {}", e.getMessage());
-            return new ChatResponse("검색 조건을 처리하는 중 오류가 발생했습니다.");
+            // 로그에도 남기고
+            log.error("상세 에러 로그: ", e);
+
+            // ★ 채팅창에 에러 원인을 그대로 출력 (범인 검거용)
+            return new ChatResponse("🚨 에러 발생: " + e.getMessage());
         }
     }
 
