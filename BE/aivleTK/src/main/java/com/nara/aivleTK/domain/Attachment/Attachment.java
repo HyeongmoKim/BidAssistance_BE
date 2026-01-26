@@ -1,6 +1,7 @@
 package com.nara.aivleTK.domain.Attachment;
 
 import com.nara.aivleTK.domain.AnalysisResult;
+import com.nara.aivleTK.domain.Bid;
 import com.nara.aivleTK.domain.board.Board;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -15,6 +16,7 @@ public class Attachment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name="attachment_id")
     private Long id;
 
     private String fileName;
@@ -30,6 +32,10 @@ public class Attachment {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "analysisResultId")
     private AnalysisResult analysisResult;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "bidId")
+    private Bid bid;
 
     public Attachment(String fileName, String storeName, String url) {
         this.fileName = fileName;

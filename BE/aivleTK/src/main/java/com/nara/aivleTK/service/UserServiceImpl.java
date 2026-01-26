@@ -100,7 +100,7 @@ public class UserServiceImpl implements UserService {
     // 비밀번호 초기화
     @Transactional
     public String resetPassword(String email, String name, String answer, LocalDate birth) {
-        User user = userRepository.findByEmailAndNameAndQuestionAndBirth(email, name, answer, birth)
+        User user = userRepository.findByEmailAndNameAndAnswerAndBirth(email, name, answer, birth)
                 .orElseThrow(() -> new ResourceNotFoundException("정보가 일치하는 회원이 없습니다."));
 
         // 8자리 암호화

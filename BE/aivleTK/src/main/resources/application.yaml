@@ -8,22 +8,22 @@ spring:
       max-file-size: 10MB
       max-request-size: 50MB
 
-  #  mail:
-  #    host: smtp.gmail.com
-  #    port: 587
-  #    username: ${MAIL_USERNAME}
-  #    password: ${MAIL_PASSWORD}
   mail:
     host: smtp.gmail.com
     port: 587
-    username: "temp@gmail.com"
-    password: "temp_password"
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
-      mail.smtp.auth: true
-      mail.smtp.starttls.enable: true
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
 
-
- # 마지막날에 db 주소 바꿔야한다고 말좀 해주세요 이거 공용이라
+  # 마지막날에 db 주소 바꿔야한다고 말좀 해주세요 이거 공용이라
   datasource:
     url: jdbc:mysql://aivle08be-server.mysql.database.azure.com:3306/aivleTK?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC&sslMode=REQUIRED
     username: cufblosigq

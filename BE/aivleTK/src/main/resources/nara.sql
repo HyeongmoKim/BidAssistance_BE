@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS `user` (
   `company_id` INT NULL,
   `email` VARCHAR(25) NOT NULL,
   `name` VARCHAR(10) NOT NULL,
-  `password` VARCHAR(20) NOT NULL,
+  `password` VARCHAR(255) NOT NULL,
   `role` BIT(2) NOT NULL,
   `birth` DATE NOT NULL,
   `question` VARCHAR(50) NOT NULL,
