@@ -39,7 +39,6 @@ public class BidResponse {
         this.region=bid.getRegion();
         this.organization=bid.getOrganization();
         this.bidURL=bid.getBidURL();
-        this.bidReportURL=bid.getBidReportURL();
         this.estimatePrice=bid.getEstimatePrice();
         this.minimumBidRate=bid.getMinimumBidRate();
     }

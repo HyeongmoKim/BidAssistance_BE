@@ -1,10 +1,12 @@
 package com.nara.aivleTK.service;
 
 import com.nara.aivleTK.domain.Bid;
+import com.nara.aivleTK.dto.chatBot.AiIntentResponse;
 import com.nara.aivleTK.dto.chatBot.ChatResponse;
 import com.nara.aivleTK.dto.chatBot.PythonChatRequest;
 import com.nara.aivleTK.repository.BidRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -13,49 +15,67 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ChatBotService {
 
     private final BidRepository bidRepository;
     private final RestTemplate restTemplate;
 
     // 파이썬 서버 주소 (FastAPI 기준)
-    private final String PYTHON_URL = "http://localhost:5000/py-api/analyze";
+    private final String PYTHON_URL = "http://localhost:5000/py-api";
 
-    public ChatResponse getAiAnalysis(String userPrompt) {
-        // 1. DB에서 Bid 테이블 전체 데이터 가져오기
-        List<Bid> allBids = bidRepository.findAll();
-
-        // 2. [중요] 엔티티 -> Map 변환 (순환참조 에러 방지 및 데이터 정제)
-        List<Map<String, Object>> cleanData = new ArrayList<>();
-
-        for (Bid bid : allBids) {
-            Map<String, Object> map = new HashMap<>();
-            // 필요한 필드만 직접 넣으세요. 에러 절대 안 납니다.
-            map.put("bidId", bid.getBidId());
-            map.put("name", bid.getName());
-            map.put("organization", bid.getOrganization());
-            map.put("estimatePrice", bid.getEstimatePrice());
-            map.put("region", bid.getRegion());
-            // 날짜 타입 처리 (Null 체크 포함)
-            map.put("startDate", bid.getStartDate() != null ? bid.getStartDate().toString() : "");
-            map.put("endDate", bid.getEndDate() != null ? bid.getEndDate().toString() : "");
-
-            cleanData.add(map);
-        }
-
-        // 3. 파이썬으로 보낼 객체 생성 (질문 + 데이터)
-        PythonChatRequest requestToPython = new PythonChatRequest(userPrompt, cleanData);
-
-        // 4. 전송 및 결과 수신
+    public ChatResponse getChatResponse(String prompt) {
+        //챗봇 검색 키워드 생성 api주소
+        String intentURL = PYTHON_URL + "/chatbot-intent";
+        PythonChatRequest intentRequest = new PythonChatRequest();
+        AiIntentResponse intent = null;
         try {
-            // postForObject(주소, 보낼데이터, 받을타입)
-            ChatResponse response = restTemplate.postForObject(PYTHON_URL, requestToPython, ChatResponse.class);
-            return response;
+            intent = restTemplate.postForObject(intentURL, intentRequest, AiIntentResponse.class);
+            log.info("AI 의도 분석 결과 : {}", intent);
         } catch (Exception e) {
-            e.printStackTrace();
-            return new ChatResponse("파이썬 서버 연결 실패: " + e.getMessage());
+            log.error("AI의도 분석 실패 : {}", e.getMessage());
+            return new ChatResponse("AI서버 연결 원활하지 않음");
         }
+        List<Bid> searchResults = new ArrayList<>();
+        if (intent != null && "search".equals(intent.getType())) {
+            searchResults = bidRepository.searchDetail(
+                    intent.getKeyword(),
+                    intent.getRegion(),
+                    intent.getAgency(),   // 추가됨 (없으면 null)
+                    intent.getMinPrice(), // 추가됨 (없으면 null)
+                    intent.getMaxPrice()  // 추가됨 (없으면 null)
+            );
+            if (searchResults.size() > 5) {
+                searchResults = searchResults.subList(0, 5);
+            }
+        }
+        //챗봇 결과 생성 api주소
+        String generateUrl = PYTHON_URL + "/chatbot-answer";
+        List<Map<String, Object>> contextData = convertBidsToMap(searchResults);
+        PythonChatRequest answerRequest = new PythonChatRequest(prompt, contextData);
+        try {
+            ChatResponse answer = restTemplate.postForObject(generateUrl, answerRequest, ChatResponse.class);
+            return answer;
+        } catch (Exception e) {
+            log.error("AI 답변 생성 실패 {}", e.getMessage());
+            return new ChatResponse("답변 생성 중 오류가 발생했습니다.");
+        }
+    }
+
+        private List<Map<String, Object>> convertBidsToMap(List<Bid> bids) {
+            List<Map<String, Object>> result = new ArrayList<>();
+            for (Bid bid : bids) {
+                Map<String, Object> map = new HashMap<>();
+                map.put("공고명", bid.getName());
+                map.put("지역", bid.getRegion());
+                map.put("수요기관", bid.getOrganization());
+                map.put("기초금액", bid.getBasicPrice());
+                map.put("링크", bid.getBidURL());
+                result.add(map);
+            }
+            return result;
     }
 }
