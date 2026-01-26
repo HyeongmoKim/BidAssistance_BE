@@ -1,84 +1,3 @@
-//package com.nara.aivleTK.service;
-//
-//import com.nara.aivleTK.domain.Bid;
-//import com.nara.aivleTK.dto.chatBot.AiIntentResponse;
-//import com.nara.aivleTK.dto.chatBot.ChatResponse;
-//import com.nara.aivleTK.dto.chatBot.PythonChatRequest;
-//import com.nara.aivleTK.repository.BidRepository;
-//import lombok.RequiredArgsConstructor;
-//import lombok.extern.slf4j.Slf4j;
-//import org.springframework.stereotype.Service;
-//import org.springframework.web.client.RestTemplate;
-//
-//import java.util.ArrayList;
-//import java.util.HashMap;
-//import java.util.List;
-//import java.util.Map;
-//
-//
-//@Service
-//@RequiredArgsConstructor
-//@Slf4j
-//public class ChatBotService {
-//
-//    private final BidRepository bidRepository;
-//    private final RestTemplate restTemplate;
-//
-//    // 파이썬 서버 주소 (FastAPI 기준)
-//    private final String PYTHON_URL = "http://localhost:5000/py-api";
-//
-//    public ChatResponse getChatResponse(String prompt) {
-//        //챗봇 검색 키워드 생성 api주소
-//        String intentURL = PYTHON_URL + "/chatbot-intent";
-//        PythonChatRequest intentRequest = new PythonChatRequest();
-//        AiIntentResponse intent = null;
-//        try {
-//            intent = restTemplate.postForObject(intentURL, intentRequest, AiIntentResponse.class);
-//            log.info("AI 의도 분석 결과 : {}", intent);
-//        } catch (Exception e) {
-//            log.error("AI의도 분석 실패 : {}", e.getMessage());
-//            return new ChatResponse("AI서버 연결 원활하지 않음");
-//        }
-//        List<Bid> searchResults = new ArrayList<>();
-//        if (intent != null && "search".equals(intent.getType())) {
-//            searchResults = bidRepository.searchDetail(
-//                    intent.getKeyword(),
-//                    intent.getRegion(),
-//                    intent.getAgency(),   // 추가됨 (없으면 null)
-//                    intent.getMinPrice(), // 추가됨 (없으면 null)
-//                    intent.getMaxPrice()  // 추가됨 (없으면 null)
-//            );
-//            if (searchResults.size() > 5) {
-//                searchResults = searchResults.subList(0, 5);
-//            }
-//        }
-//        //챗봇 결과 생성 api주소
-//        String generateUrl = PYTHON_URL + "/chatbot-answer";
-//        List<Map<String, Object>> contextData = convertBidsToMap(searchResults);
-//        PythonChatRequest answerRequest = new PythonChatRequest(prompt, contextData);
-//        try {
-//            ChatResponse answer = restTemplate.postForObject(generateUrl, answerRequest, ChatResponse.class);
-//            return answer;
-//        } catch (Exception e) {
-//            log.error("AI 답변 생성 실패 {}", e.getMessage());
-//            return new ChatResponse("답변 생성 중 오류가 발생했습니다.");
-//        }
-//    }
-//
-//        private List<Map<String, Object>> convertBidsToMap(List<Bid> bids) {
-//            List<Map<String, Object>> result = new ArrayList<>();
-//            for (Bid bid : bids) {
-//                Map<String, Object> map = new HashMap<>();
-//                map.put("공고명", bid.getName());
-//                map.put("지역", bid.getRegion());
-//                map.put("수요기관", bid.getOrganization());
-//                map.put("기초금액", bid.getBasicPrice());
-//                map.put("링크", bid.getBidURL());
-//                result.add(map);
-//            }
-//            return result;
-//    }
-//}
 
 package com.nara.aivleTK.service;
 
@@ -90,10 +9,14 @@ import com.nara.aivleTK.dto.chatBot.PythonChatRequest;
 import com.nara.aivleTK.repository.BidRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -104,133 +27,164 @@ public class ChatBotService {
 
     private final BidRepository bidRepository;
     private final RestTemplate restTemplate;
-    private final ObjectMapper objectMapper; // JSON 파싱을 위해 추가
+    private final ObjectMapper objectMapper;
 
-    // 파이썬 서버 주소 (main.py가 8000포트에서 실행됨)
-    private final String PYTHON_URL = "http://localhost:8000/chat";
+    // ★ 1. 파이썬 서버 주소 (ngrok 주소 또는 로컬 주소 확인)
+    private final String PYTHON_URL = "http://127.0.0.1:8000/chat";
 
     public ChatResponse getChatResponse(String prompt) {
-        // 1. 파이썬 LangGraph 에이전트 호출
-        PythonChatRequest request = new PythonChatRequest(prompt, "user_session_1"); // 세션 ID는 필요시 동적으로 변경
+        PythonChatRequest requestPayload = new PythonChatRequest(prompt, "user_session_1");
+
+        // ngrok 헤더 처리
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("ngrok-skip-browser-warning", "true");
+        headers.add("Content-Type", "application/json");
+        HttpEntity<PythonChatRequest> entity = new HttpEntity<>(requestPayload, headers);
+
+
 
         try {
-            // 파이썬 서버로 요청 전송
-            ResponseEntity<Map> responseEntity = restTemplate.postForEntity(PYTHON_URL, request, Map.class);
+            ResponseEntity<Map> responseEntity = restTemplate.postForEntity(PYTHON_URL, entity, Map.class);
             Map<String, Object> body = responseEntity.getBody();
 
             if (body == null || !body.containsKey("response")) {
-                return new ChatResponse("AI 서버로부터 응답을 받지 못했습니다.");
+                return new ChatResponse("AI 응답이 없습니다.");
             }
 
             String aiResponse = (String) body.get("response");
+            log.info("파이썬이 준 원본 데이터: {}", aiResponse);
 
-            // 2. 응답 내용 분석 (JSON인지 일반 텍스트인지 판단)
             if (isSearchIntent(aiResponse)) {
-                // [검색 의도] 파이썬이 JSON 필터를 반환한 경우 -> DB 조회 수행
                 return handleSearchIntent(aiResponse);
             } else {
-                // [일반 대화/사용법] 파이썬이 텍스트 답변을 준 경우 -> 그대로 반환
                 return new ChatResponse(aiResponse);
             }
 
         } catch (Exception e) {
-            log.error("AI 서버 연결 실패 : {}", e.getMessage());
-            return new ChatResponse("AI 서버 연결이 원활하지 않습니다. 잠시 후 다시 시도해주세요.");
+            log.error("AI 서버 연결 실패: {}", e.getMessage());
+            return new ChatResponse("시스템 에러: " + e.getMessage());
         }
     }
 
-    // 파이썬 응답이 JSON 형식(검색 필터)인지 확인
     private boolean isSearchIntent(String response) {
         try {
             JsonNode node = objectMapper.readTree(response);
-            // JSON이고 "intent" 필드가 있으면 검색 명령으로 간주
             return node.has("intent") && node.has("filter");
         } catch (Exception e) {
-            return false; // JSON 파싱 실패 시 일반 텍스트로 간주
+            return false;
         }
     }
 
-    // DB 검색 수행 및 결과 포맷팅
     private ChatResponse handleSearchIntent(String jsonString) {
         try {
             JsonNode root = objectMapper.readTree(jsonString);
             JsonNode filter = root.path("filter");
 
-            // 1. 파이썬의 복잡한 JSON 필터를 자바 변수로 매핑
+            // --- 1. 기본 필드 파싱 ---
+            String bidRealId = filter.path("bidRealId").isNull() ? null : filter.path("bidRealId").asText();
             String region = filter.path("region").isNull() ? null : filter.path("region").asText();
-            String agency = filter.path("organization").isNull() ? null : filter.path("organization").asText();
-
-            // 공고명(Keyword)은 현재 파이썬 필터에 없으므로 null 처리하거나, 필요시 파이썬 툴 수정 필요
-            // 여기서는 지역/기관/가격 조건만으로 검색
+            String organization = filter.path("organization").isNull() ? null : filter.path("organization").asText();
+            // 파이썬 툴에는 'keyword'가 없지만 필요 시 추가 가능. 현재는 null 처리
             String keyword = null;
 
-            // 가격 범위 파싱 (파이썬: estimatePrice.from.value / to.value)
-            Long minPrice = null;
-            Long maxPrice = null;
+            // --- 2. 금액/비율 범위 파싱 (Helper 메서드 사용) ---
+            Long minBasicPrice = parseLongValue(filter.path("basicPrice"), "from");
+            Long maxBasicPrice = parseLongValue(filter.path("basicPrice"), "to");
 
-            JsonNode basicPriceNode = filter.path("basicPrice"); // 기초금액 기준
-            if (!basicPriceNode.isMissingNode() && !basicPriceNode.isNull()) {
-                if (basicPriceNode.has("from") && !basicPriceNode.path("from").isNull()) {
-                    minPrice = basicPriceNode.path("from").path("value").asLong();
-                }
-                if (basicPriceNode.has("to") && !basicPriceNode.path("to").isNull()) {
-                    maxPrice = basicPriceNode.path("to").path("value").asLong();
+            Long minEstimatePrice = parseLongValue(filter.path("estimatePrice"), "from");
+            Long maxEstimatePrice = parseLongValue(filter.path("estimatePrice"), "to");
+
+            Double minBidRate = parseDoubleValue(filter.path("minimumBidRate"), "from");
+            Double maxBidRate = parseDoubleValue(filter.path("minimumBidRate"), "to");
+
+            Double minBidRange = parseDoubleValue(filter.path("bidRange"), "from");
+            Double maxBidRange = parseDoubleValue(filter.path("bidRange"), "to");
+
+            // --- 3. 날짜 조건 파싱 ---
+            LocalDateTime startDateFrom = null; LocalDateTime startDateTo = null;
+            LocalDateTime endDateFrom = null; LocalDateTime endDateTo = null;
+            LocalDateTime openDateFrom = null; LocalDateTime openDateTo = null;
+
+            JsonNode timeRange = filter.path("timeRange");
+            if (!timeRange.isMissingNode() && !timeRange.isNull()) {
+                String base = timeRange.path("base").asText(); // startDate, endDate, openDate
+
+                LocalDateTime fromDate = parseDateValue(timeRange.path("from"));
+                LocalDateTime toDate = parseDateValue(timeRange.path("to"));
+
+                if ("startDate".equals(base)) {
+                    startDateFrom = fromDate; startDateTo = toDate;
+                } else if ("endDate".equals(base)) {
+                    endDateFrom = fromDate; endDateTo = toDate;
+                } else if ("openDate".equals(base)) {
+                    openDateFrom = fromDate; openDateTo = toDate;
                 }
             }
 
-            log.info("DB 검색 실행 - 지역: {}, 기관: {}, 최소금액: {}, 최대금액: {}", region, agency, minPrice, maxPrice);
-
-            // 2. 리포지토리 조회
+            // --- 4. DB 조회 실행 (파라미터 순서 정확해야 함) ---
             List<Bid> searchResults = bidRepository.searchDetail(
-                    keyword,
-                    region,
-                    agency,
-                    minPrice,
-                    maxPrice
+                    bidRealId, keyword, region, organization,
+                    minBasicPrice, maxBasicPrice,
+                    minEstimatePrice, maxEstimatePrice,
+                    minBidRate, maxBidRate,
+                    minBidRange, maxBidRange,
+                    startDateFrom, startDateTo,
+                    endDateFrom, endDateTo,
+                    openDateFrom, openDateTo,
+                    LocalDateTime.now()
             );
 
-            // 3. 결과를 텍스트(문자열)로 변환하여 반환
             if (!searchResults.isEmpty()) {
-                return new ChatResponse(
-                        "검색 결과 " + searchResults.size() + "건을 찾았습니다.", // 텍스트 메시지
-                        "list",                                              // UI 타입
-                        searchResults                                        // ★ 실제 데이터 리스트
-                );
+                return new ChatResponse("검색 결과 " + searchResults.size() + "건을 찾았습니다.", "list", searchResults);
+            } else {
+                return new ChatResponse("조건에 맞는 공고가 없습니다.");
             }
 
-            return new ChatResponse(formatBidsToString(searchResults));
-
-            // ChatBotService.java의 아래쪽 catch 블록 수정
-
         } catch (Exception e) {
-            // 로그에도 남기고
-            log.error("상세 에러 로그: ", e);
-
-            // ★ 채팅창에 에러 원인을 그대로 출력 (범인 검거용)
-            return new ChatResponse("🚨 에러 발생: " + e.getMessage());
+            log.error("검색 처리 중 오류", e);
+            return new ChatResponse("검색 조건을 처리하는 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
 
-    // 공고 리스트를 사용자가 보기 좋은 문자열로 변환
-    private String formatBidsToString(List<Bid> bids) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("총 ").append(bids.size()).append("건의 공고가 검색되었습니다.\n\n");
+    // --- Helper Methods ---
 
-        int count = 0;
-        for (Bid bid : bids) {
-            if (count >= 5) break; // 최대 5개만 표시
-            sb.append(count + 1).append(". ").append(bid.getName()).append("\n");
-            sb.append("   - 지역: ").append(bid.getRegion() != null ? bid.getRegion() : "전국").append("\n");
-            sb.append("   - 기관: ").append(bid.getOrganization()).append("\n");
-            sb.append("   - 금액: ").append(String.format("%,d", bid.getBasicPrice())).append("원\n");
-            sb.append("   - 링크: ").append(bid.getBidURL()).append("\n\n");
-            count++;
+    // JSON { "from": { "value": 100 } } 에서 값 추출
+    private Long parseLongValue(JsonNode parentNode, String direction) {
+        if (parentNode.isMissingNode() || parentNode.isNull()) return null;
+        JsonNode target = parentNode.path(direction);
+        if (target.has("value") && !target.path("value").isNull()) {
+            return target.path("value").asLong();
         }
+        return null;
+    }
 
-        if (bids.size() > 5) {
-            sb.append("...외 ").append(bids.size() - 5).append("건이 더 있습니다.");
+    private Double parseDoubleValue(JsonNode parentNode, String direction) {
+        if (parentNode.isMissingNode() || parentNode.isNull()) return null;
+        JsonNode target = parentNode.path(direction);
+        if (target.has("value") && !target.path("value").isNull()) {
+            return target.path("value").asDouble();
         }
+        return null;
+    }
 
-        return sb.toString();
+    // yyyyMMddHHmm 형식 숫자를 LocalDateTime으로 변환
+    private LocalDateTime parseDateValue(JsonNode node) {
+        if (node.isMissingNode() || node.isNull()) return null;
+        // kind가 absolute인 경우 value를 파싱
+        if ("absolute".equals(node.path("kind").asText())) {
+            long val = node.path("value").asLong();
+            if (val == 0) return null;
+            try {
+                // 숫자 -> 문자열 -> 파싱
+                String dateStr = String.valueOf(val);
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
+                return LocalDateTime.parse(dateStr, formatter);
+            } catch (Exception e) {
+                log.warn("날짜 파싱 실패: " + val);
+                return null;
+            }
+        }
+        // calendar(상대 날짜)는 현재 로직에서 복잡하므로 null 처리 (필요 시 로직 추가)
+        return null;
     }
 }
