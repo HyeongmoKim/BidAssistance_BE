@@ -27,18 +27,19 @@ public class AlarmController {
     }
 
     // 2. 내 알림 목록 조회 API
-    @GetMapping("/{userId}")
+    @GetMapping("/{userId:\\d+}")
     public ResponseEntity<ApiResponse<List<Alarm>>> getMyAlarms(@PathVariable Integer userId) {
         List<Alarm> alarms = alarmService.getMyAlarms(userId);
         return ResponseEntity.ok(ApiResponse.success(alarms));
     }
 
     // 3. 알림 삭제 API
-    @DeleteMapping("/{alarmId}")
+    @DeleteMapping("/{alarmId:\\d+}")
     public ResponseEntity<ApiResponse<Object>> deleteAlarm(@PathVariable Integer alarmId) {
         alarmService.deleteAlarm(alarmId);
         return ResponseEntity.ok(ApiResponse.success("알림이 삭제되었습니다."));
     }
+
     // 4. 이메일 알림 발송 API
     @PostMapping("/email")
     public ResponseEntity<String> sendEmailNotification(

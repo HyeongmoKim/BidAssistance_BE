@@ -34,7 +34,7 @@ public class UserController {
     }
 
     // 2. 유저 조회
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public ResponseEntity<ApiResponse<UserResponse>> getUser(@PathVariable("id") Integer id) {
         UserResponse userResponse = userService.getUserInfo(id);
         return ResponseEntity.ok(ApiResponse.success(userResponse));
@@ -42,7 +42,8 @@ public class UserController {
 
     // 3. 로그인 (POST)
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<UserResponse>> login(@RequestBody LoginRequest request, HttpServletResponse response) {
+    public ResponseEntity<ApiResponse<UserResponse>> login(@RequestBody LoginRequest request,
+            HttpServletResponse response) {
         UserResponse loginUser = userService.login(request);
 
         String token = jwtUtil.createToken(loginUser.getId(), loginUser.getEmail());
@@ -64,22 +65,22 @@ public class UserController {
     }
 
     // 5. 회원정보 수정 (PUT)
-    @PutMapping("/{id}")
+    @PutMapping("/{id:\\d+}")
     public ResponseEntity<ApiResponse<UserResponse>> updateUser(@PathVariable Integer id,
-                                                                @RequestBody UserCreateRequest request) {
+            @RequestBody UserCreateRequest request) {
         UserResponse updatedUser = userService.updateUser(id, request);
         return ResponseEntity.ok(ApiResponse.success("회원정보가 수정되었습니다.", updatedUser));
     }
 
     // 6. 회원정보 삭제 (DELETE)
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id:\\d+}")
     public ResponseEntity<ApiResponse<Object>> deleteUser(@PathVariable Integer id) {
         userService.deleteUser(id);
         return ResponseEntity.ok(ApiResponse.success("회원정보가 삭제되었습니다."));
     }
 
     // 7. 휴먼 계정 전환
-    @PostMapping("/restUser/{id}")
+    @PostMapping("/restUser/{id:\\d+}")
     public ResponseEntity<ApiResponse<Object>> restUser(@PathVariable Integer id, @RequestParam Integer rest) { // rest가
         // 전환
         userService.restUser(id, rest);
@@ -88,7 +89,8 @@ public class UserController {
 
     // 8. 로그인 확인
     @GetMapping("/checkLogin")
-    public ResponseEntity<ApiResponse<UserResponse>> checkLogin(@CookieValue(value = JwtUtil.AUTHORIZATION_HEADER, required = false) String tokenValue) {
+    public ResponseEntity<ApiResponse<UserResponse>> checkLogin(
+            @CookieValue(value = JwtUtil.AUTHORIZATION_HEADER, required = false) String tokenValue) {
 
         if (tokenValue == null) {
             throw new UnauthorizedException("로그인이 필요합니다.");
@@ -110,7 +112,7 @@ public class UserController {
     // 9. 계정(아이디) 찾기 질문 조회
     @GetMapping("/find-email/identify")
     public ResponseEntity<ApiResponse<QuestionDto>> checkQuestion(@RequestParam String name,
-                                                                  @RequestParam LocalDate birth) {
+            @RequestParam LocalDate birth) {
         User user = userRepository.findByNameAndBirth(name, birth)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 계정이 없습니다."));
 
@@ -133,7 +135,8 @@ public class UserController {
 
     // 11. 비밀번호 질문
     @GetMapping("/recovery_question")
-    public ResponseEntity<ApiResponse<QuestionDto>> checkPQuestion(@RequestParam String email, @RequestParam String name, @RequestParam LocalDate birth) {
+    public ResponseEntity<ApiResponse<QuestionDto>> checkPQuestion(@RequestParam String email,
+            @RequestParam String name, @RequestParam LocalDate birth) {
         User user = userRepository.findByEmailAndNameAndBirth(email, name, birth)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 계정이 없습니다."));
 

@@ -227,7 +227,7 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `comment` ;
 
 CREATE TABLE IF NOT EXISTS `comment` (
-  `comment_id` INT NOT NULL,
+  `comment_id` INT NOT NULL AUTO_INCREMENT,
   `content` VARCHAR(300) NOT NULL,
   `date` TIMESTAMP NOT NULL,
   `bid_id` INT NULL,
@@ -269,7 +269,7 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `attachment` ;
 
 CREATE TABLE IF NOT EXISTS `attachment` (
-  `attachment_id` INT NOT NULL,
+  `attachment_id` INT NOT NULL AUTO_INCREMENT,
   `file_name` VARCHAR(45) NOT NULL,
   `store_name` VARCHAR(45) NULL,
   `url` VARCHAR(45) NOT NULL,

@@ -20,7 +20,7 @@ public class WishlistController {
         return ResponseEntity.ok(ApiResponse.success(wishlistService.toggleWishlist(userId, bidId)));
     }
 
-    @GetMapping("/{userId}")
+    @GetMapping("/{userId:\\d+}")
     public ResponseEntity<ApiResponse<List<BidResponse>>> getUserWishlist(@PathVariable Integer userId) {
         return ResponseEntity.ok(ApiResponse.success(wishlistService.getUserWishlist(userId)));
     }

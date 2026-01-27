@@ -29,7 +29,7 @@ public class CompanyController {
         return ResponseEntity.ok(ApiResponse.success(list));
     }
 
-    @GetMapping("/{id}") // 회사 상세 조회
+    @GetMapping("/{id:\\d+}") // 회사 상세 조회
     public ResponseEntity<ApiResponse<CompanyResponse>> getCompany(@PathVariable("id") Integer id) {
         CompanyResponse company = companyService.getCompany(id);
         return ResponseEntity.ok(ApiResponse.success(company));

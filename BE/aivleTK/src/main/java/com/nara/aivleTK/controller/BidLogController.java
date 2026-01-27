@@ -29,7 +29,7 @@ public class BidLogController {
     }
 
     // 2. 특정 유저의 입찰 내역 조회 API
-    @GetMapping("/{userId}")
+    @GetMapping("/{userId:\\d+}")
     public ResponseEntity<ApiResponse<List<BidLog>>> getUserLogs(@PathVariable Integer userId) {
         List<BidLog> logs = bidLogService.getUserBidLogs(userId);
         return ResponseEntity.ok(ApiResponse.success(logs));
