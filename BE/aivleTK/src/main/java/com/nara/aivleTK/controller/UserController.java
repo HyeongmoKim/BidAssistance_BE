@@ -9,9 +9,9 @@ import com.nara.aivleTK.repository.UserRepository;
 import com.nara.aivleTK.service.UserService;
 import com.nara.aivleTK.util.JwtUtil;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.Cookie;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -56,10 +56,15 @@ public class UserController {
     // 4. 로그아웃 (POST)
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Object>> logout(HttpServletResponse response) {
-        Cookie cookie = new Cookie(JwtUtil.AUTHORIZATION_HEADER, null);
-        cookie.setMaxAge(0);
-        cookie.setPath("/");
-        response.addCookie(cookie);
+        ResponseCookie cookie = ResponseCookie.from(JwtUtil.AUTHORIZATION_HEADER, "")
+                .path("/")
+                .maxAge(0) // 쿠키 삭제
+                .sameSite("None")
+                .secure(true)
+                .httpOnly(true)
+                .build();
+
+        response.addHeader("Set-Cookie", cookie.toString());
 
         return ResponseEntity.ok(ApiResponse.success("로그아웃 되었습니다."));
     }
