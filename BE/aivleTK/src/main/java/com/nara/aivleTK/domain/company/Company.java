@@ -20,16 +20,17 @@ public class Company {
     @Column(name = "company_id")
     private Integer id;
 
-    @Column(length=15, nullable=false)
+    @Column(length = 15, nullable = false)
     private String name;
 
-    @Column(length=200)
+    @Column(length = 200)
     private String license;
 
-    @Column(name = "performance_history", length=200)
+    @Column(name = "performance_history", length = 200)
     private String performanceHistory;
 
     // 양방향 매핑 with User
-    @OneToMany(mappedBy="company", cascade = CascadeType.ALL)
+    @Builder.Default
+    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL)
     private List<User> users = new ArrayList<>();
 }

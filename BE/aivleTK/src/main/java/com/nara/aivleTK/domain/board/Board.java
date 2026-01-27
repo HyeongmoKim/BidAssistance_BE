@@ -59,6 +59,7 @@ public class Board extends AutoTimeRecode {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
+    @Builder.Default
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Attachment> attachments = new ArrayList<>();
 }
