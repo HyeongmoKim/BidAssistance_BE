@@ -32,8 +32,9 @@ public class WishlistController {
         return ResponseEntity.ok(ApiResponse.success(wishlistService.toggleWishlist(userId, bidId)));
     }
 
-    @GetMapping
+    @GetMapping(value = { "", "/{userId:\\d+}" })
     public ResponseEntity<ApiResponse<List<BidResponse>>> getUserWishlist(
+            @PathVariable(required = false) Integer userId,
             @CookieValue(value = JwtUtil.AUTHORIZATION_HEADER, required = false) String tokenValue) {
         if (tokenValue == null) {
             throw new com.nara.aivleTK.exception.UnauthorizedException("로그인이 필요합니다.");
@@ -42,8 +43,8 @@ public class WishlistController {
         if (!jwtUtil.validateToken(token)) {
             throw new com.nara.aivleTK.exception.UnauthorizedException("유효하지 않은 토큰입니다.");
         }
-        int userId = jwtUtil.getUserInfoFromToken(token).get("user_id", Integer.class);
+        int tokenUserId = jwtUtil.getUserInfoFromToken(token).get("user_id", Integer.class);
 
-        return ResponseEntity.ok(ApiResponse.success(wishlistService.getUserWishlist(userId)));
+        return ResponseEntity.ok(ApiResponse.success(wishlistService.getUserWishlist(tokenUserId)));
     }
 }

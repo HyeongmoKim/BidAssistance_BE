@@ -151,7 +151,7 @@ public class UserController {
         return ResponseEntity.ok(new ApiResponse<>("success", "확인성공", data));
     }
 
-    // 12. 비밀번호 찾기 (GET)
+    // 12. 비밀번호 찾기 (POST)
     @PostMapping("/reset_password")
     public ResponseEntity<ApiResponse<Object>> resetPassword(@RequestBody ResetPasswordRequest rpr) {
         userService.resetPassword(rpr.getEmail(), rpr.getName(), rpr.getAnswer(), rpr.getBirth());
