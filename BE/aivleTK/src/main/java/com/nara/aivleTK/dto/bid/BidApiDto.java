@@ -63,13 +63,13 @@ public class BidApiDto {
 
     // === [ 2. 금액 및 투찰 관련 정보 ] ===
 
-    @JsonProperty("presmptPrce")      // 추정가격 (Estimated Price)
+    @JsonProperty("presmptPrce") // 추정가격 (Estimated Price)
     private String estimatedPriceStr;
 
-    @JsonProperty("VAT")              // 부가세 (계산용)
+    @JsonProperty("VAT") // 부가세 (계산용)
     private String vatStr;
 
-    @JsonProperty("bssamt")           // ★ 기초금액 (Basic Price) - 직접 제공될 경우
+    @JsonProperty("bssamt") // ★ 기초금액 (Basic Price) - 직접 제공될 경우
     private String basicPriceStr;
 
     @JsonProperty("sucsfbidLwltRate") // 낙찰하한율
@@ -81,9 +81,8 @@ public class BidApiDto {
     @JsonProperty("cntrctCnclsMthdNm") // 계약체결방법 (예: "수의계약", "일반경쟁", "제한경쟁")
     private String contractMethod;
 
-    @JsonProperty("sucsfbidMthdNm")    // 낙찰자결정방법 (예: "수의(견적제출)", "적격심사")
+    @JsonProperty("sucsfbidMthdNm") // 낙찰자결정방법 (예: "수의(견적제출)", "적격심사")
     private String successMethod;
-
 
     // === [ 3. DTO -> Entity 변환 ] ===
     public Bid toEntity() {
@@ -107,20 +106,24 @@ public class BidApiDto {
         return Bid.builder()
                 .bidRealId(realIdCombined)
                 .name(this.name)
+                .content(this.name) // 내용이 없으므로 제목으로 대체
                 .organization(this.organization)
-                .region(this.region)
                 .bidURL(this.bidURL)
-                .startDate(parseDate(this.startDateStr, formatter))
+                .region(this.region)
+                .startDate(parseDate(this.startDateStr, formatter) != null ? parseDate(this.startDateStr, formatter)
+                        : (parseDate(this.openDateStr, formatter) != null ? parseDate(this.openDateStr, formatter)
+                                : LocalDateTime.now()))
                 .endDate(parseDate(this.endDateStr, formatter))
-                .openDate(parseDate(this.openDateStr, formatter))
+                .openDate(parseDate(this.openDateStr, formatter) != null ? parseDate(this.openDateStr, formatter)
+                        : LocalDateTime.now())
 
                 // ★ 금액 정보 저장
-                .estimatePrice(estPrice)       // 추정가격
-                .basicPrice(finalBasicPrice)   // 기초금액 (우선순위 로직 적용됨)
+                .estimatePrice(estPrice) // 추정가격
+                .basicPrice(finalBasicPrice) // 기초금액 (우선순위 로직 적용됨)
 
                 // ★ 투찰율 정보 저장
                 .minimumBidRate(parseDouble(this.minimumBidRate)) // 낙찰하한율
-                .bidRange(rangeAbs)            // 투찰범위 (Entity에 bidRange 필드가 있어야 함)
+                .bidRange(rangeAbs) // 투찰범위 (Entity에 bidRange 필드가 있어야 함)
 
                 .build();
     }
@@ -129,7 +132,8 @@ public class BidApiDto {
 
     // BigInteger 파싱
     private BigInteger parseBigInt(String str) {
-        if (str == null || str.trim().isEmpty()) return BigInteger.ZERO;
+        if (str == null || str.trim().isEmpty())
+            return BigInteger.ZERO;
         try {
             return new BigInteger(str.replaceAll(",", "").trim());
         } catch (Exception e) {
@@ -139,7 +143,8 @@ public class BidApiDto {
 
     // Double 파싱 (일반)
     private Double parseDouble(String str) {
-        if (str == null || str.trim().isEmpty()) return 0.0;
+        if (str == null || str.trim().isEmpty())
+            return 0.0;
         try {
             return Double.parseDouble(str.trim());
         } catch (Exception e) {
@@ -149,7 +154,8 @@ public class BidApiDto {
 
     // ★ 투찰범위 절댓값 파싱 ("+3", "-3", "3%" -> 3.0)
     private Double parseRangeToAbs(String str) {
-        if (str == null || str.trim().isEmpty()) return 0.0;
+        if (str == null || str.trim().isEmpty())
+            return 0.0;
         try {
             String cleanStr = str.replace("+", "")
                     .replace("-", "")
@@ -163,7 +169,8 @@ public class BidApiDto {
 
     // 날짜 파싱
     private LocalDateTime parseDate(String dateStr, DateTimeFormatter formatter) {
-        if (dateStr == null || dateStr.trim().isEmpty()) return null;
+        if (dateStr == null || dateStr.trim().isEmpty())
+            return null;
         try {
             return LocalDateTime.parse(dateStr, formatter);
         } catch (Exception e) {

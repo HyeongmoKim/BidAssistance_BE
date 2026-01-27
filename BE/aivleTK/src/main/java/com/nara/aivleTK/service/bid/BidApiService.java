@@ -43,13 +43,17 @@ public class BidApiService {
             LocalDateTime end = now.plusHours(12);
             DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
 
-            StringBuilder listUrlBuilder = new StringBuilder("http://apis.data.go.kr/1230000/ad/BidPublicInfoService/getBidPblancListInfoCnstwk");
+            StringBuilder listUrlBuilder = new StringBuilder(
+                    "http://apis.data.go.kr/1230000/ad/BidPublicInfoService/getBidPblancListInfoCnstwk");
             listUrlBuilder.append("?" + URLEncoder.encode("serviceKey", "UTF-8") + "=" + SERVICE_KEY);
-            listUrlBuilder.append("&" + URLEncoder.encode("numOfRows", "UTF-8") + "=" + URLEncoder.encode("200", "UTF-8"));
+            listUrlBuilder
+                    .append("&" + URLEncoder.encode("numOfRows", "UTF-8") + "=" + URLEncoder.encode("200", "UTF-8"));
             listUrlBuilder.append("&" + URLEncoder.encode("pageNo", "UTF-8") + "=" + URLEncoder.encode("1", "UTF-8"));
             listUrlBuilder.append("&" + URLEncoder.encode("inqryDiv", "UTF-8") + "=" + URLEncoder.encode("1", "UTF-8"));
-            listUrlBuilder.append("&" + URLEncoder.encode("inqryBgnDt", "UTF-8") + "=" + URLEncoder.encode(start.format(fmt), "UTF-8"));
-            listUrlBuilder.append("&" + URLEncoder.encode("inqryEndDt", "UTF-8") + "=" + URLEncoder.encode(end.format(fmt), "UTF-8"));
+            listUrlBuilder.append("&" + URLEncoder.encode("inqryBgnDt", "UTF-8") + "="
+                    + URLEncoder.encode(start.format(fmt), "UTF-8"));
+            listUrlBuilder.append(
+                    "&" + URLEncoder.encode("inqryEndDt", "UTF-8") + "=" + URLEncoder.encode(end.format(fmt), "UTF-8"));
             listUrlBuilder.append("&" + URLEncoder.encode("type", "UTF-8") + "=" + URLEncoder.encode("json", "UTF-8"));
 
             URL listUrl = new URI(listUrlBuilder.toString()).toURL();
@@ -57,7 +61,8 @@ public class BidApiService {
             JsonNode rootNode = mapper.readTree(listUrl);
             JsonNode itemsNode = rootNode.path("response").path("body").path("items");
 
-            if (itemsNode.isMissingNode() || itemsNode.isEmpty()) return "데이터 없음";
+            if (itemsNode.isMissingNode() || itemsNode.isEmpty())
+                return "데이터 없음";
 
             // [수정] DTO 원본을 담을 리스트 (URL 정보 보존용)
             List<BidApiDto> validDtos = new ArrayList<>();
@@ -65,11 +70,13 @@ public class BidApiService {
             if (itemsNode.isArray()) {
                 for (JsonNode node : itemsNode) {
                     BidApiDto dto = mapper.treeToValue(node, BidApiDto.class);
-                    if (!isSkipTarget(dto)) validDtos.add(dto);
+                    if (!isSkipTarget(dto))
+                        validDtos.add(dto);
                 }
             } else {
                 BidApiDto dto = mapper.treeToValue(itemsNode.path("item"), BidApiDto.class);
-                if (!isSkipTarget(dto)) validDtos.add(dto);
+                if (!isSkipTarget(dto))
+                    validDtos.add(dto);
             }
 
             // === 2. [중복 제거] ===
@@ -109,7 +116,8 @@ public class BidApiService {
                     } else {
                         if (bid.getEstimatePrice() != null) {
                             java.math.BigDecimal estPrice = new java.math.BigDecimal(bid.getEstimatePrice());
-                            java.math.BigInteger calculatedBasicPrice = estPrice.multiply(java.math.BigDecimal.valueOf(1.1)).toBigInteger();
+                            java.math.BigInteger calculatedBasicPrice = estPrice
+                                    .multiply(java.math.BigDecimal.valueOf(1.1)).toBigInteger();
                             bid.setBasicPrice(calculatedBasicPrice);
                         }
                     }
@@ -137,12 +145,17 @@ public class BidApiService {
                         BidApiDto sourceDto = dtoMap.get(bid.getBidRealId());
 
                         if (sourceDto != null) {
-                            // DTO에 있는 URL을 사용 (Bid 객체에는 이제 URL 필드가 없다고 가정)
-                            attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName(), sourceDto.getBidReportUrl());
-                            attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName2(), sourceDto.getBidReportUrl2());
-                            attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName3(), sourceDto.getBidReportUrl3());
-                            attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName4(), sourceDto.getBidReportUrl4());
-                            attachmentCount++;
+                            // 상세 페이지 URL은 이제 Bid 테이블에 저장되므로 Attachment에는 저장하지 않음
+                            // attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName(),
+                            // sourceDto.getBidReportUrl());
+                            // attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName2(),
+                            // sourceDto.getBidReportUrl2());
+                            // attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName3(),
+                            // sourceDto.getBidReportUrl3());
+                            // attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName4(),
+                            // sourceDto.getBidReportUrl4());
+                            // attachmentCount++; // This line is also removed as no attachments are saved
+                            // here
                         }
 
                     } catch (Exception e) {
@@ -167,11 +180,13 @@ public class BidApiService {
         if (fullBidNtceNo.contains("-")) {
             String[] parts = fullBidNtceNo.split("-");
             baseNo = parts[0];
-            if (parts.length > 1) ord = parts[1];
+            if (parts.length > 1)
+                ord = parts[1];
         }
 
         try {
-            StringBuilder urlBuilder = new StringBuilder("https://apis.data.go.kr/1230000/ad/BidPublicInfoService/getBidPblancListInfoPrtcptPsblRgn");
+            StringBuilder urlBuilder = new StringBuilder(
+                    "https://apis.data.go.kr/1230000/ad/BidPublicInfoService/getBidPblancListInfoPrtcptPsblRgn");
             urlBuilder.append("?" + URLEncoder.encode("serviceKey", "UTF-8") + "=" + SERVICE_KEY);
             urlBuilder.append("&" + URLEncoder.encode("pageNo", "UTF-8") + "=" + URLEncoder.encode("1", "UTF-8"));
             urlBuilder.append("&" + URLEncoder.encode("numOfRows", "UTF-8") + "=" + URLEncoder.encode("10", "UTF-8"));
@@ -184,18 +199,22 @@ public class BidApiService {
             JsonNode rootNode = mapper.readTree(url);
             JsonNode itemsNode = rootNode.path("response").path("body").path("items");
 
-            if (itemsNode.isMissingNode() || itemsNode.isEmpty()) return "전국";
+            if (itemsNode.isMissingNode() || itemsNode.isEmpty())
+                return "전국";
 
             List<String> regions = new ArrayList<>();
             if (itemsNode.isArray()) {
                 for (JsonNode item : itemsNode) {
-                    if (item.has("prtcptPsblRgnNm")) regions.add(item.get("prtcptPsblRgnNm").asText());
+                    if (item.has("prtcptPsblRgnNm"))
+                        regions.add(item.get("prtcptPsblRgnNm").asText());
                 }
             } else {
-                if (itemsNode.has("item")) regions.add(itemsNode.path("item").path("prtcptPsblRgnNm").asText());
+                if (itemsNode.has("item"))
+                    regions.add(itemsNode.path("item").path("prtcptPsblRgnNm").asText());
             }
 
-            if (regions.isEmpty()) return "전국";
+            if (regions.isEmpty())
+                return "전국";
             return String.join(", ", regions);
 
         } catch (Exception e) {
@@ -210,11 +229,13 @@ public class BidApiService {
         if (fullBidNtceNo.contains("-")) {
             String[] parts = fullBidNtceNo.split("-");
             baseNo = parts[0];
-            if (parts.length > 1) ord = parts[1];
+            if (parts.length > 1)
+                ord = parts[1];
         }
 
         try {
-            StringBuilder urlBuilder = new StringBuilder("http://apis.data.go.kr/1230000/ad/BidPublicInfoService/getBidPblancListInfoCnstwkBsisAmount");
+            StringBuilder urlBuilder = new StringBuilder(
+                    "http://apis.data.go.kr/1230000/ad/BidPublicInfoService/getBidPblancListInfoCnstwkBsisAmount");
             urlBuilder.append("?" + URLEncoder.encode("serviceKey", "UTF-8") + "=" + SERVICE_KEY);
             urlBuilder.append("&" + URLEncoder.encode("pageNo", "UTF-8") + "=" + URLEncoder.encode("1", "UTF-8"));
             urlBuilder.append("&" + URLEncoder.encode("numOfRows", "UTF-8") + "=" + URLEncoder.encode("10", "UTF-8"));
@@ -228,7 +249,8 @@ public class BidApiService {
             JsonNode rootNode = mapper.readTree(url);
             JsonNode itemsNode = rootNode.path("response").path("body").path("items");
 
-            if (itemsNode.isMissingNode() || itemsNode.isEmpty()) return null;
+            if (itemsNode.isMissingNode() || itemsNode.isEmpty())
+                return null;
 
             JsonNode targetNode;
             if (itemsNode.isArray()) {
@@ -274,8 +296,10 @@ public class BidApiService {
         String method = dto.getContractMethod();
         String title = dto.getName();
 
-        if (method != null && method.contains("수의")) return true;
-        if (title != null && (title.contains("시담") || title.contains("수의"))) return true;
+        if (method != null && method.contains("수의"))
+            return true;
+        if (title != null && (title.contains("시담") || title.contains("수의")))
+            return true;
 
         return false;
     }

@@ -102,6 +102,7 @@ public class BoardController {
                     userId = jwtUtil.getUserInfoFromToken(token).get("user_id", Integer.class);
                 }
             } catch (Exception e) {
+
             }
         }
 

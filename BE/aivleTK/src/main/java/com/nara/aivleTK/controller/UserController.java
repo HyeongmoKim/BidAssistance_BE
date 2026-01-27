@@ -136,13 +136,14 @@ public class UserController {
     public ResponseEntity<ApiResponse<QuestionDto>> checkPQuestion(@RequestParam String email, @RequestParam String name, @RequestParam LocalDate birth) {
         User user = userRepository.findByEmailAndNameAndBirth(email, name, birth)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 계정이 없습니다."));
+
         // question 필드가 숫자 문자열인 경우 Integer로 파싱
         Integer questionIndex = Integer.parseInt(user.getQuestion());
         QuestionDto data = new QuestionDto(user.getId(), questionIndex);
         return ResponseEntity.ok(new ApiResponse<>("success", "확인성공", data));
     }
 
-    // 11. 비밀번호 찾기 (GET)
+    // 12. 비밀번호 찾기 (GET)
     @PostMapping("/reset_password")
     public ResponseEntity<ApiResponse<Object>> resetPassword(@RequestBody ResetPasswordRequest rpr) {
         userService.resetPassword(rpr.getEmail(), rpr.getName(), rpr.getAnswer(), rpr.getBirth());
