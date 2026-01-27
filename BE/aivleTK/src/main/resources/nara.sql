@@ -272,7 +272,7 @@ CREATE TABLE IF NOT EXISTS `attachment` (
   `attachment_id` INT NOT NULL AUTO_INCREMENT,
   `file_name` VARCHAR(45) NOT NULL,
   `store_name` VARCHAR(45) NULL,
-  `url` VARCHAR(45) NOT NULL,
+  `url` VARCHAR(1000) NOT NULL,
   `bid_id` INT NULL,
   `board_id` INT NULL,
   `analysis_result_id` INT NULL,
