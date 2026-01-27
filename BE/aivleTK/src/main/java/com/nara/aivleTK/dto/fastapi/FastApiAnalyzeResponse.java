@@ -20,8 +20,8 @@ public class FastApiAnalyzeResponse {
     @JsonProperty("report")
     private String report; // 분석 리포트 (마크다운)
 
-    @JsonProperty("pdf_path")  // ⭐ 새로 추가된 필드
-    private String pdfPath;
+    @JsonProperty("pdf_link")  // ⭐ 새로 추가된 필드
+    private String pdfLink;
 
     @Getter
     @Setter
