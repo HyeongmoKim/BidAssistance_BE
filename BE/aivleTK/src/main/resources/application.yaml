@@ -25,9 +25,9 @@ spring:
 
   # 마지막날에 db 주소 바꿔야한다고 말좀 해주세요 이거 공용이라
   datasource:
-    url: jdbc:mysql://aivle08be-server.mysql.database.azure.com:3306/aivleTK?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC&sslMode=REQUIRED
-    username: cufblosigq
-    password: beV9i3$DWXZMhLqn
+    url: jdbc:mysql://localhost:3306/aivleTK
+    username: root
+    password: test1234!
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -41,6 +41,10 @@ spring:
 app:
   cors:
     allowed-origins: "http://localhost:5173,https://calm-tree-0e8ee630f.4.azurestaticapps.net"
+  bid:
+    fetch:
+      schedule: "0 0 0 * * *" # 매일 자정 공고 받아오기
+      on-startup: true # 서버 시작 시 공고 받아 오기
 
 jwt:
   secret:
