@@ -269,14 +269,14 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `attachment` ;
 
 CREATE TABLE IF NOT EXISTS `attachment` (
-  `attachment_id` INT NOT NULL AUTO_INCREMENT,
+  `id` INT NOT NULL AUTO_INCREMENT,
   `file_name` VARCHAR(45) NOT NULL,
   `store_name` VARCHAR(45) NULL,
   `url` VARCHAR(1000) NOT NULL,
   `bid_id` INT NULL,
   `board_id` INT NULL,
   `analysis_result_id` INT NULL,
-  PRIMARY KEY (`attachment_id`),
+  PRIMARY KEY (`id`),
   INDEX `fk_attachment_bid1_idx` (`bid_id` ASC) VISIBLE,
   INDEX `fk_attachment_board1_idx` (`board_id` ASC) VISIBLE,
   INDEX `fk_attachment_analysis_result1_idx` (`analysis_result_id` ASC) VISIBLE,
