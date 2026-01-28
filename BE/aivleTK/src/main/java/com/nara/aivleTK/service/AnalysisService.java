@@ -2,6 +2,7 @@ package com.nara.aivleTK.service;
 
 import com.nara.aivleTK.domain.AnalysisResult;
 import com.nara.aivleTK.domain.Bid;
+import com.nara.aivleTK.dto.AnalysisResultDto;
 import com.nara.aivleTK.dto.fastapi.FastApiAnalyzeRequest;   // 추가
 import com.nara.aivleTK.dto.fastapi.FastApiAnalyzeResponse;  // 추가
 import com.nara.aivleTK.repository.AnalysisResultRepository;
@@ -26,9 +27,8 @@ public class AnalysisService {
     private final WebClient webClient;
     private final AttachmentService attachmentService; // 필요시 사용
 
-    @Async
     @Transactional
-    public void analyzeAndSave(Integer bidId) {
+    public AnalysisResultDto analyzeAndSave(Integer bidId) {
         // 1. 공고 조회
         Bid bid = bidRepository.findById(bidId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid bid ID: " + bidId));
@@ -56,7 +56,8 @@ public class AnalysisService {
             }
 
             // 4. 결과 저장
-            AnalysisResult entity = new AnalysisResult();
+            AnalysisResult entity = analysisResultRepository.findByBid(bid)
+                            .orElse(new AnalysisResult());
             entity.setBid(bid);
             entity.setAnalysisDate(LocalDateTime.now());
 
@@ -77,15 +78,19 @@ public class AnalysisService {
             entity.setTrackRecord("분석 결과 참조");
             entity.setQualification("분석 결과 참조");
 
-            analysisResultRepository.save(entity);
+            AnalysisResult saveEntity =  analysisResultRepository.save(entity);
             log.info("✅ AI 분석 완료 및 저장 [공고: {}]", bid.getBidRealId());
+            return AnalysisResultDto.from(saveEntity);
 
         } catch (WebClientRequestException e) {
             log.error("❌ AI 서버 연결 실패 (URL 확인 필요): {}", e.getMessage());
+            throw new RuntimeException("AI 서버 연결 실패", e);
         } catch (Exception e) {
             log.error("❌ AI 분석 중 오류 발생: {}", e.getMessage(), e);
+            throw new RuntimeException("AI 서버 연결 실패", e);
         }
     }
+
 
     // Bid 객체의 정보를 RAG 모델이 이해하기 쉬운 텍스트로 변환하는 헬퍼 메소드
     private String createPromptFromBid(Bid bid) {
