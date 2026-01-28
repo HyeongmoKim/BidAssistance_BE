@@ -1,6 +1,7 @@
 package com.nara.aivleTK.service;
 
 import com.nara.aivleTK.domain.AnalysisResult;
+import com.nara.aivleTK.domain.Attachment.Attachment;
 import com.nara.aivleTK.domain.Bid;
 import com.nara.aivleTK.dto.AnalysisResultDto;
 import com.nara.aivleTK.dto.fastapi.FastApiAnalyzeRequest;   // 추가
@@ -17,6 +18,9 @@ import org.springframework.web.reactive.function.client.WebClientRequestExceptio
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -38,9 +42,20 @@ public class AnalysisService {
             // RAG 모델은 텍스트를 분석하므로, DB 정보를 문장으로 만들어줍니다.
             String bidText = createPromptFromBid(bid);
 
+            ///첨부파일 url 꺼내오기
+
+            List<String> fileUrls = new ArrayList<>();
+            if (bid.getAttachments() != null) {
+                fileUrls = bid.getAttachments().stream()
+                        .map(Attachment::getUrl)         // Attachment 객체에서 URL 추출
+                        .filter(url -> url != null && !url.isBlank()) // 유효한 URL만 필터링
+                        .collect(Collectors.toList());
+            }
+
             FastApiAnalyzeRequest requestDto = FastApiAnalyzeRequest.builder()
                     .text(bidText)
                     .threadId(String.valueOf(bidId)) // thread_id로 bidId 사용
+                    .fileUrls(fileUrls)
                     .build();
 
             // 3. AI 서버 요청 (엔드포인트 /analyze 로 변경)
