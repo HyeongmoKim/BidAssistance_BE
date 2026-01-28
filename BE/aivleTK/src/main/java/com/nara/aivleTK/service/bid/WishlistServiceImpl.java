@@ -37,7 +37,7 @@ public class WishlistServiceImpl implements WishlistService {
             wishlistRepository.delete(wishlistOpt.get());
             return "찜하기가 취소되었습니다.";
         } else {
-            wishlistRepository.save(Wishlist.builder().user(user).bid(bid).build());
+            wishlistRepository.save(Wishlist.builder().user(user).bid(bid).stage(0).build());
             return "찜 목록에 추가되었습니다.";
         }
     }

@@ -41,9 +41,9 @@ public class User {
 
     private LocalDate birth;
 
-    @Column(name = "role", columnDefinition = "BIT(2)")
+    @Column(name = "role")
     private Integer role; // 00: 일반 유저 01: 기업 10: 관리자 11: 휴면
 
-    @Column(name = "tag", columnDefinition = "BIT(4)")
+    @Column(name = "tag")
     private Integer tag; // 0000~0111: 일반 유저 태그, 1000~1111: 기업 유저 태그
 }
