@@ -145,17 +145,16 @@ public class BidApiService {
                         BidApiDto sourceDto = dtoMap.get(bid.getBidRealId());
 
                         if (sourceDto != null) {
-                            // 상세 페이지 URL은 이제 Bid 테이블에 저장되므로 Attachment에는 저장하지 않음
-                            // attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName(),
-                            // sourceDto.getBidReportUrl());
-                            // attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName2(),
-                            // sourceDto.getBidReportUrl2());
-                            // attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName3(),
-                            // sourceDto.getBidReportUrl3());
-                            // attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName4(),
-                            // sourceDto.getBidReportUrl4());
-                            // attachmentCount++; // This line is also removed as no attachments are saved
-                            // here
+                             //상세 페이지 URL은 이제 Bid 테이블에 저장되므로 Attachment에는 저장하지 않음
+                             attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName(),
+                             sourceDto.getBidReportUrl());
+                             attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName2(),
+                             sourceDto.getBidReportUrl2());
+                             attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName3(),
+                             sourceDto.getBidReportUrl3());
+                             attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName4(),
+                             sourceDto.getBidReportUrl4());
+                             attachmentCount++;
                         }
 
                     } catch (Exception e) {
