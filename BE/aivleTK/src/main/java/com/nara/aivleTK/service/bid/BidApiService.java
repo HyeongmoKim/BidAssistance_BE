@@ -95,9 +95,9 @@ public class BidApiService {
             Set<String> existingIds = existingBids.stream().map(Bid::getBidRealId).collect(Collectors.toSet());
 
             // 중복되지 않은 새로운 Bid 엔티티 생성
-            List<Bid> newBidsToSave = validDtos.stream()
+            List<Bid> newBidsToSave = dtoMap.values().stream()
                     .filter(dto -> !existingIds.contains(dto.getBidNtceNo() + "-" + dto.getBidNtceOrd()))
-                    .map(BidApiDto::toEntity) // 이 시점에 URL 정보는 Bid 엔티티에 들어가지 않음 (DTO 수정 전제)
+                    .map(BidApiDto::toEntity)
                     .collect(Collectors.toList());
 
             // === 3. [상세 정보 병합 Loop] ===
@@ -145,17 +145,15 @@ public class BidApiService {
                         BidApiDto sourceDto = dtoMap.get(bid.getBidRealId());
 
                         if (sourceDto != null) {
-                            // 상세 페이지 URL은 이제 Bid 테이블에 저장되므로 Attachment에는 저장하지 않음
-                            // attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName(),
-                            // sourceDto.getBidReportUrl());
-                            // attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName2(),
-                            // sourceDto.getBidReportUrl2());
-                            // attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName3(),
-                            // sourceDto.getBidReportUrl3());
-                            // attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName4(),
-                            // sourceDto.getBidReportUrl4());
-                            // attachmentCount++; // This line is also removed as no attachments are saved
-                            // here
+                             attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName(),
+                             sourceDto.getBidReportUrl());
+                             attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName2(),
+                             sourceDto.getBidReportUrl2());
+                             attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName3(),
+                             sourceDto.getBidReportUrl3());
+                             attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName4(),
+                             sourceDto.getBidReportUrl4());
+                             attachmentCount++;
                         }
 
                     } catch (Exception e) {
