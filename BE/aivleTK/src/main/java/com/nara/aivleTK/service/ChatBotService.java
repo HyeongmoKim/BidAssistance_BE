@@ -30,7 +30,7 @@ public class ChatBotService {
     private final ObjectMapper objectMapper;
 
     // ★ 1. 파이썬 서버 주소 (ngrok 주소 또는 로컬 주소 확인)
-    private final String PYTHON_URL = "http://127.0.0.1:8000/chat";
+    private final String PYTHON_URL = "https://aivleachatbot.greenpond-9eab36ab.koreacentral.azurecontainerapps.io:8000/chat";
 
     public ChatResponse getChatResponse(String prompt) {
         PythonChatRequest requestPayload = new PythonChatRequest(prompt, "user_session_1");

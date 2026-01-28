@@ -138,7 +138,7 @@ public class BidApiService {
                 for (Bid bid : savedBids) {
                     try {
                         // 1. AI 분석 요청
-                        analysisService.analyzeAndSave(bid.getBidId());
+                        //analysisService.analyzeAndSave(bid.getBidId());
                         analysisCount++;
 
                         // 2. [핵심] DTO Map에서 원본 DTO를 찾아 URL 정보를 Attachment 테이블에 저장
