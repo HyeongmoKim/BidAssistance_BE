@@ -40,7 +40,7 @@ public class Board extends AutoTimeRecode {
     @Column(nullable = false, length = 50)
     private String title;
 
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, length = 500)
     private String content;
 
     @Column(nullable = false, length = 20)
