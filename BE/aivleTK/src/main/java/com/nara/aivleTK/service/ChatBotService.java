@@ -15,8 +15,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Map;
 
@@ -47,17 +49,20 @@ public class ChatBotService {
             ResponseEntity<Map> responseEntity = restTemplate.postForEntity(PYTHON_URL, entity, Map.class);
             Map<String, Object> body = responseEntity.getBody();
 
+            // 1. 응답 null 체크
             if (body == null || !body.containsKey("response")) {
-                return new ChatResponse("AI 응답이 없습니다.");
+                return new ChatResponse("AI 서버로부터 응답이 없습니다.");
             }
 
-            String aiResponse = (String) body.get("response");
-            log.info("파이썬이 준 원본 데이터: {}", aiResponse);
+            // 2. 응답 내용 추출
+            String aiContent = (String) body.get("response");
+            log.info("AI 응답 데이터: {}", aiContent);
 
-            if (isSearchIntent(aiResponse)) {
-                return handleSearchIntent(aiResponse);
+            // 3. 의도(Intent) 파악 및 분기 처리
+            if (isSearchIntent(aiContent)) {
+                return handleSearchIntent(aiContent); // DB 조회 로직 실행
             } else {
-                return new ChatResponse(aiResponse);
+                return new ChatResponse(aiContent);   // 일반 대화 반환
             }
 
         } catch (Exception e) {
@@ -170,21 +175,90 @@ public class ChatBotService {
     // yyyyMMddHHmm 형식 숫자를 LocalDateTime으로 변환
     private LocalDateTime parseDateValue(JsonNode node) {
         if (node.isMissingNode() || node.isNull()) return null;
-        // kind가 absolute인 경우 value를 파싱
-        if ("absolute".equals(node.path("kind").asText())) {
+
+        String kind = node.path("kind").asText();
+
+        // 1. 절대 날짜 (Absolute) 처리
+        if ("absolute".equals(kind)) {
             long val = node.path("value").asLong();
             if (val == 0) return null;
             try {
-                // 숫자 -> 문자열 -> 파싱
                 String dateStr = String.valueOf(val);
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
                 return LocalDateTime.parse(dateStr, formatter);
             } catch (Exception e) {
-                log.warn("날짜 파싱 실패: " + val);
+                log.warn("절대 날짜 파싱 실패: " + val);
                 return null;
             }
         }
-        // calendar(상대 날짜)는 현재 로직에서 복잡하므로 null 처리 (필요 시 로직 추가)
+
+        // 2. 상대 날짜 (Calendar) 처리 ★핵심 구현★
+        else if ("calendar".equals(kind)) {
+            String unit = node.path("unit").asText();     // day, week, month, year
+            int offset = node.path("offset").asInt();     // 0, 1, -1 ...
+            String position = node.path("position").asText(); // start, end
+
+            return calculateCalendarDate(unit, offset, position);
+        }
+
         return null;
     }
+    private LocalDateTime calculateCalendarDate(String unit, int offset, String position) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime targetDate = now;
+
+        // 1. 단위(unit)에 따른 이동
+        switch (unit) {
+            case "day":
+                targetDate = now.plusDays(offset);
+                break;
+            case "week":
+                targetDate = now.plusWeeks(offset);
+                break;
+            case "month":
+                targetDate = now.plusMonths(offset);
+                break;
+            case "year":
+                targetDate = now.plusYears(offset);
+                break;
+            default:
+                return now;
+        }
+
+        // 2. 위치(position)에 따른 시점 조정 (시작일/종료일)
+        if ("start".equals(position)) {
+            switch (unit) {
+                case "week": // 해당 주의 월요일 00:00
+                    targetDate = targetDate.with(DayOfWeek.MONDAY).withHour(0).withMinute(0).withSecond(0);
+                    break;
+                case "month": // 해당 월의 1일 00:00
+                    targetDate = targetDate.with(TemporalAdjusters.firstDayOfMonth()).withHour(0).withMinute(0).withSecond(0);
+                    break;
+                case "year": // 해당 연도의 1월 1일 00:00
+                    targetDate = targetDate.with(TemporalAdjusters.firstDayOfYear()).withHour(0).withMinute(0).withSecond(0);
+                    break;
+                case "day": // 해당 일의 00:00
+                    targetDate = targetDate.withHour(0).withMinute(0).withSecond(0);
+                    break;
+            }
+        } else if ("end".equals(position)) {
+            switch (unit) {
+                case "week": // 해당 주의 일요일 23:59
+                    targetDate = targetDate.with(DayOfWeek.SUNDAY).withHour(23).withMinute(59).withSecond(59);
+                    break;
+                case "month": // 해당 월의 마지막 날 23:59
+                    targetDate = targetDate.with(TemporalAdjusters.lastDayOfMonth()).withHour(23).withMinute(59).withSecond(59);
+                    break;
+                case "year": // 해당 연도의 12월 31일 23:59
+                    targetDate = targetDate.with(TemporalAdjusters.lastDayOfYear()).withHour(23).withMinute(59).withSecond(59);
+                    break;
+                case "day": // 해당 일의 23:59
+                    targetDate = targetDate.withHour(23).withMinute(59).withSecond(59);
+                    break;
+            }
+        }
+
+        return targetDate;
+    }
+
 }
