@@ -10,6 +10,7 @@ import com.nara.aivleTK.service.UserService;
 import com.nara.aivleTK.util.JwtUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -117,7 +118,7 @@ public class UserController {
     // 9. 계정(아이디) 찾기 질문 조회
     @GetMapping("/find-email/identify")
     public ResponseEntity<ApiResponse<QuestionDto>> checkQuestion(@RequestParam String name,
-            @RequestParam LocalDate birth) {
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate birth) {
         User user = userRepository.findByNameAndBirth(name, birth)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 계정이 없습니다."));
 
@@ -141,7 +142,7 @@ public class UserController {
     // 11. 비밀번호 질문
     @GetMapping("/recovery_question")
     public ResponseEntity<ApiResponse<QuestionDto>> checkPQuestion(@RequestParam String email,
-            @RequestParam String name, @RequestParam LocalDate birth) {
+            @RequestParam String name, @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate birth) {
         User user = userRepository.findByEmailAndNameAndBirth(email, name, birth)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 계정이 없습니다."));
 
