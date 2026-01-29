@@ -83,7 +83,7 @@ public class BoardServiceImpl implements BoardService {
     public void deletePost(Integer id, Integer userId) {
         Board board = boardRepository.findById(id).orElseThrow();
         User user = userRepository.findById(userId).orElseThrow();
-        if ((board.getUser().getId().equals(userId)) || (user.getRole() != 2)) { // 관리자가 아니거나 작성자가 아니거나
+        if ((!board.getUser().getId().equals(userId)) && (user.getRole() != 2))  { // 관리자가 아니거나 작성자가 아니거나
             throw new IllegalStateException("삭제 권한이 없습니다.");
         }
         boardRepository.delete(board);
