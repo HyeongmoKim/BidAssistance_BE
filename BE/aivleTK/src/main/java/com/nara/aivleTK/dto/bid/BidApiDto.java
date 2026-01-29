@@ -39,6 +39,9 @@ public class BidApiDto {
     @JsonProperty("opengDt")
     private String openDateStr;
 
+    @JsonProperty("bidNtceDt")
+    private String bidCreated;
+
     @JsonProperty("ntceSpecDocUrl1")
     private String bidReportUrl;
     @JsonProperty("ntceSpecFileNm1")
@@ -116,6 +119,7 @@ public class BidApiDto {
                 .endDate(parseDate(this.endDateStr, formatter))
                 .openDate(parseDate(this.openDateStr, formatter) != null ? parseDate(this.openDateStr, formatter)
                         : LocalDateTime.now())
+                .bidCreated(parseDate(this.bidCreated, formatter))
 
                 // ★ 금액 정보 저장
                 .estimatePrice(estPrice) // 추정가격

@@ -65,11 +65,12 @@ DROP TABLE IF EXISTS `bid` ;
 CREATE TABLE IF NOT EXISTS `bid` (
   `bid_id` INT NOT NULL AUTO_INCREMENT,
   `bid_real_id` VARCHAR(20) NOT NULL,
-  `name` VARCHAR(50) NOT NULL,
+  `name` VARCHAR(100) NOT NULL,
   `content` VARCHAR(400) NOT NULL,
   `start_date` TIMESTAMP NOT NULL,
   `end_date` TIMESTAMP NULL,
   `open_date` TIMESTAMP NOT NULL,
+  `bid_created` TIMESTAMP NOT NULL,
   `region` VARCHAR(50) NOT NULL,
   `organization` VARCHAR(50) NOT NULL,
   `bid_URL` VARCHAR(300) NOT NULL,

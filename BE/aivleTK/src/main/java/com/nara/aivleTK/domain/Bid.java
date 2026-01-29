@@ -4,6 +4,7 @@ import com.nara.aivleTK.domain.Attachment.Attachment;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +34,8 @@ public class Bid {
     private LocalDateTime endDate;
     @Column
     private LocalDateTime openDate;
+    @Column
+    private LocalDateTime bidCreated;
     @Column
     private String region;
     @Column
