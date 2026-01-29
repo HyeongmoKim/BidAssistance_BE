@@ -112,7 +112,9 @@ public class BidApiService {
 
                     if (priceInfo != null && !priceInfo.getBasicPrice().equals(java.math.BigInteger.ZERO)) {
                         bid.setBasicPrice(priceInfo.getBasicPrice());
-                        bid.setBidRange(priceInfo.getBidRangeAbs());
+                        double apiRange = priceInfo.getBidRangeAbs();
+                        bid.setBidRange(apiRange == 0.0 ? 3.0 : apiRange);
+
                     } else {
                         if (bid.getEstimatePrice() != null) {
                             java.math.BigDecimal estPrice = new java.math.BigDecimal(bid.getEstimatePrice());
@@ -120,6 +122,7 @@ public class BidApiService {
                                     .multiply(java.math.BigDecimal.valueOf(1.1)).toBigInteger();
                             bid.setBasicPrice(calculatedBasicPrice);
                         }
+                        bid.setBidRange(3.0);
                     }
                     Thread.sleep(50);
                 } catch (Exception e) {
