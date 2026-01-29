@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.springframework.util.StringUtils.hasText;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -132,35 +134,45 @@ public class BidApiService {
 
             // === 4. [최종 저장 및 후속 처리] ===
             if (!newBidsToSave.isEmpty()) {
-                // DB 저장 (여기서 bidId가 생성됨)
                 List<Bid> savedBids = bidRepository.saveAll(newBidsToSave);
 
                 int analysisCount = 0;
                 int attachmentCount = 0;
 
                 for (Bid bid : savedBids) {
+                    // [Step 1] AI 분석 (실패해도 괜찮음)
                     try {
-                        // 1. AI 분석 요청
                         analysisService.analyzeAndSave(bid.getBidId());
                         analysisCount++;
+                    } catch (Exception e) {
+                        log.warn("AI 분석 요청 실패 (ID: {}): {}", bid.getBidRealId(), e.getMessage());
+                    }
 
-                        // 2. [핵심] DTO Map에서 원본 DTO를 찾아 URL 정보를 Attachment 테이블에 저장
+                    // [Step 2] 첨부파일 저장 (AI 성공 여부와 상관없이 실행)
+                    try {
                         BidApiDto sourceDto = dtoMap.get(bid.getBidRealId());
 
                         if (sourceDto != null) {
-                             attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName(),
-                             sourceDto.getBidReportUrl());
-                             attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName2(),
-                             sourceDto.getBidReportUrl2());
-                             attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName3(),
-                             sourceDto.getBidReportUrl3());
-                             attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName4(),
-                             sourceDto.getBidReportUrl4());
-                             attachmentCount++;
-                        }
+                            // URL이 있는지 확인하고 저장 (Helper 메서드나 null 체크 활용)
+                            if (hasText(sourceDto.getBidReportUrl())) {
+                                attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName(), sourceDto.getBidReportUrl());
+                            }
+                            if (hasText(sourceDto.getBidReportUrl2())) {
+                                attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName2(), sourceDto.getBidReportUrl2());
+                            }
+                            if (hasText(sourceDto.getBidReportUrl3())) {
+                                attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName3(), sourceDto.getBidReportUrl3());
+                            }
+                            if (hasText(sourceDto.getBidReportUrl4())) {
+                                attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName4(), sourceDto.getBidReportUrl4());
+                            }
 
+                            attachmentCount++;
+                        } else {
+                            log.warn("첨부파일 매핑 실패: DTO를 찾을 수 없음 (ID: {})", bid.getBidRealId());
+                        }
                     } catch (Exception e) {
-                        log.error("후속 처리 실패 (ID: {}): {}", bid.getBidId(), e.getMessage());
+                        log.error("첨부파일 저장 실패 (ID: {}): {}", bid.getBidRealId(), e.getMessage());
                     }
                 }
                 return "신규 " + savedBids.size() + "건 저장 완료, " + analysisCount + "건 분석 요청, 첨부파일 연결 완료";
