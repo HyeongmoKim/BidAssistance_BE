@@ -1,4 +1,3 @@
-
 package com.nara.aivleTK.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -31,38 +30,38 @@ public class ChatBotService {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
-    // ★ 1. 파이썬 서버 주소 (ngrok 주소 또는 로컬 주소 확인)
+    // 파이썬 서버 주소
     private final String PYTHON_URL = "https://aivleachatbot.greenpond-9eab36ab.koreacentral.azurecontainerapps.io/chat";
 
     public ChatResponse getChatResponse(String prompt) {
+        // DTO에 payload 필드가 없으므로, 현재는 query만 보냅니다.
+        // 추후 요약 기능을 위해서는 PythonChatRequest DTO에 payload 필드 추가가 필요합니다.
         PythonChatRequest requestPayload = new PythonChatRequest(prompt, "user_session_1");
 
-        // ngrok 헤더 처리
         HttpHeaders headers = new HttpHeaders();
         headers.add("ngrok-skip-browser-warning", "true");
         headers.add("Content-Type", "application/json");
         HttpEntity<PythonChatRequest> entity = new HttpEntity<>(requestPayload, headers);
 
-
-
         try {
             ResponseEntity<Map> responseEntity = restTemplate.postForEntity(PYTHON_URL, entity, Map.class);
             Map<String, Object> body = responseEntity.getBody();
 
-            // 1. 응답 null 체크
             if (body == null || !body.containsKey("response")) {
                 return new ChatResponse("AI 서버로부터 응답이 없습니다.");
             }
 
-            // 2. 응답 내용 추출
             String aiContent = (String) body.get("response");
-            log.info("AI 응답 데이터: {}", aiContent);
 
-            // 3. 의도(Intent) 파악 및 분기 처리
-            if (isSearchIntent(aiContent)) {
-                return handleSearchIntent(aiContent); // DB 조회 로직 실행
+            // ★ 1. 마크다운 제거 (안정성 강화)
+            String sanitizedContent = sanitizeAiResponse(aiContent);
+            log.info("AI 응답(Sanitized): {}", sanitizedContent);
+
+            // ★ 2. 수정된 의도 파악 로직 사용
+            if (isSearchIntent(sanitizedContent)) {
+                return handleSearchIntent(sanitizedContent);
             } else {
-                return new ChatResponse(aiContent);   // 일반 대화 반환
+                return new ChatResponse(aiContent);
             }
 
         } catch (Exception e) {
@@ -71,10 +70,27 @@ public class ChatBotService {
         }
     }
 
+    // ★ 마크다운 제거 메서드
+    private String sanitizeAiResponse(String content) {
+        if (content == null) return "";
+        String sanitized = content.trim();
+        if (sanitized.startsWith("```json")) {
+            sanitized = sanitized.substring(7);
+        } else if (sanitized.startsWith("```")) {
+            sanitized = sanitized.substring(3);
+        }
+        if (sanitized.endsWith("```")) {
+            sanitized = sanitized.substring(0, sanitized.length() - 3);
+        }
+        return sanitized.trim();
+    }
+
+    // ★ 의도 파악 조건 수정 (intent 키 삭제)
     private boolean isSearchIntent(String response) {
         try {
             JsonNode node = objectMapper.readTree(response);
-            return node.has("intent") && node.has("filter");
+            // Python 툴은 intent 키를 주지 않고 filter와 output을 줍니다.
+            return node.has("filter") && node.has("output");
         } catch (Exception e) {
             return false;
         }
@@ -85,14 +101,11 @@ public class ChatBotService {
             JsonNode root = objectMapper.readTree(jsonString);
             JsonNode filter = root.path("filter");
 
-            // --- 1. 기본 필드 파싱 ---
             String bidRealId = filter.path("bidRealId").isNull() ? null : filter.path("bidRealId").asText();
             String region = filter.path("region").isNull() ? null : filter.path("region").asText();
             String organization = filter.path("organization").isNull() ? null : filter.path("organization").asText();
-            // 파이썬 툴에는 'keyword'가 없지만 필요 시 추가 가능. 현재는 null 처리
-            String keyword = null;
+            String keyword = null; // Python 툴에는 keyword 필드가 없으므로 null (필요시 name 사용)
 
-            // --- 2. 금액/비율 범위 파싱 (Helper 메서드 사용) ---
             Long minBasicPrice = parseLongValue(filter.path("basicPrice"), "from");
             Long maxBasicPrice = parseLongValue(filter.path("basicPrice"), "to");
 
@@ -105,14 +118,14 @@ public class ChatBotService {
             Double minBidRange = parseDoubleValue(filter.path("bidRange"), "from");
             Double maxBidRange = parseDoubleValue(filter.path("bidRange"), "to");
 
-            // --- 3. 날짜 조건 파싱 ---
+            // 날짜 조건 처리
             LocalDateTime startDateFrom = null; LocalDateTime startDateTo = null;
             LocalDateTime endDateFrom = null; LocalDateTime endDateTo = null;
             LocalDateTime openDateFrom = null; LocalDateTime openDateTo = null;
 
             JsonNode timeRange = filter.path("timeRange");
             if (!timeRange.isMissingNode() && !timeRange.isNull()) {
-                String base = timeRange.path("base").asText(); // startDate, endDate, openDate
+                String base = timeRange.path("base").asText();
 
                 LocalDateTime fromDate = parseDateValue(timeRange.path("from"));
                 LocalDateTime toDate = parseDateValue(timeRange.path("to"));
@@ -126,7 +139,6 @@ public class ChatBotService {
                 }
             }
 
-            // --- 4. DB 조회 실행 (파라미터 순서 정확해야 함) ---
             List<Bid> searchResults = bidRepository.searchDetail(
                     bidRealId, keyword, region, organization,
                     minBasicPrice, maxBasicPrice,
@@ -151,9 +163,6 @@ public class ChatBotService {
         }
     }
 
-    // --- Helper Methods ---
-
-    // JSON { "from": { "value": 100 } } 에서 값 추출
     private Long parseLongValue(JsonNode parentNode, String direction) {
         if (parentNode.isMissingNode() || parentNode.isNull()) return null;
         JsonNode target = parentNode.path(direction);
@@ -172,13 +181,11 @@ public class ChatBotService {
         return null;
     }
 
-    // yyyyMMddHHmm 형식 숫자를 LocalDateTime으로 변환
     private LocalDateTime parseDateValue(JsonNode node) {
         if (node.isMissingNode() || node.isNull()) return null;
 
         String kind = node.path("kind").asText();
 
-        // 1. 절대 날짜 (Absolute) 처리
         if ("absolute".equals(kind)) {
             long val = node.path("value").asLong();
             if (val == 0) return null;
@@ -191,74 +198,45 @@ public class ChatBotService {
                 return null;
             }
         }
-
-        // 2. 상대 날짜 (Calendar) 처리 ★핵심 구현★
+        // ★ 3. 상대 날짜(calendar) 처리 로직 추가
         else if ("calendar".equals(kind)) {
-            String unit = node.path("unit").asText();     // day, week, month, year
-            int offset = node.path("offset").asInt();     // 0, 1, -1 ...
-            String position = node.path("position").asText(); // start, end
-
+            String unit = node.path("unit").asText();
+            int offset = node.path("offset").asInt();
+            String position = node.path("position").asText();
             return calculateCalendarDate(unit, offset, position);
         }
-
         return null;
     }
+
+    // ★ 상대 날짜 계산 헬퍼 메서드 추가
     private LocalDateTime calculateCalendarDate(String unit, int offset, String position) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime targetDate = now;
 
-        // 1. 단위(unit)에 따른 이동
+        // 1. 오프셋 적용
         switch (unit) {
-            case "day":
-                targetDate = now.plusDays(offset);
-                break;
-            case "week":
-                targetDate = now.plusWeeks(offset);
-                break;
-            case "month":
-                targetDate = now.plusMonths(offset);
-                break;
-            case "year":
-                targetDate = now.plusYears(offset);
-                break;
-            default:
-                return now;
+            case "day": targetDate = now.plusDays(offset); break;
+            case "week": targetDate = now.plusWeeks(offset); break;
+            case "month": targetDate = now.plusMonths(offset); break;
+            case "year": targetDate = now.plusYears(offset); break;
         }
 
-        // 2. 위치(position)에 따른 시점 조정 (시작일/종료일)
+        // 2. 위치(start/end) 보정
         if ("start".equals(position)) {
             switch (unit) {
-                case "week": // 해당 주의 월요일 00:00
-                    targetDate = targetDate.with(DayOfWeek.MONDAY).withHour(0).withMinute(0).withSecond(0);
-                    break;
-                case "month": // 해당 월의 1일 00:00
-                    targetDate = targetDate.with(TemporalAdjusters.firstDayOfMonth()).withHour(0).withMinute(0).withSecond(0);
-                    break;
-                case "year": // 해당 연도의 1월 1일 00:00
-                    targetDate = targetDate.with(TemporalAdjusters.firstDayOfYear()).withHour(0).withMinute(0).withSecond(0);
-                    break;
-                case "day": // 해당 일의 00:00
-                    targetDate = targetDate.withHour(0).withMinute(0).withSecond(0);
-                    break;
+                case "week": targetDate = targetDate.with(DayOfWeek.MONDAY).withHour(0).withMinute(0).withSecond(0); break;
+                case "month": targetDate = targetDate.with(TemporalAdjusters.firstDayOfMonth()).withHour(0).withMinute(0).withSecond(0); break;
+                case "year": targetDate = targetDate.with(TemporalAdjusters.firstDayOfYear()).withHour(0).withMinute(0).withSecond(0); break;
+                case "day": targetDate = targetDate.withHour(0).withMinute(0).withSecond(0); break;
             }
         } else if ("end".equals(position)) {
             switch (unit) {
-                case "week": // 해당 주의 일요일 23:59
-                    targetDate = targetDate.with(DayOfWeek.SUNDAY).withHour(23).withMinute(59).withSecond(59);
-                    break;
-                case "month": // 해당 월의 마지막 날 23:59
-                    targetDate = targetDate.with(TemporalAdjusters.lastDayOfMonth()).withHour(23).withMinute(59).withSecond(59);
-                    break;
-                case "year": // 해당 연도의 12월 31일 23:59
-                    targetDate = targetDate.with(TemporalAdjusters.lastDayOfYear()).withHour(23).withMinute(59).withSecond(59);
-                    break;
-                case "day": // 해당 일의 23:59
-                    targetDate = targetDate.withHour(23).withMinute(59).withSecond(59);
-                    break;
+                case "week": targetDate = targetDate.with(DayOfWeek.SUNDAY).withHour(23).withMinute(59).withSecond(59); break;
+                case "month": targetDate = targetDate.with(TemporalAdjusters.lastDayOfMonth()).withHour(23).withMinute(59).withSecond(59); break;
+                case "year": targetDate = targetDate.with(TemporalAdjusters.lastDayOfYear()).withHour(23).withMinute(59).withSecond(59); break;
+                case "day": targetDate = targetDate.withHour(23).withMinute(59).withSecond(59); break;
             }
         }
-
         return targetDate;
     }
-
 }

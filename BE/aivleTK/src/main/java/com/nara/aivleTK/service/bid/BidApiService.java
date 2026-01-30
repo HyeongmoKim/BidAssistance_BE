@@ -142,7 +142,7 @@ public class BidApiService {
                 for (Bid bid : savedBids) {
                     // [Step 1] AI 분석 (실패해도 괜찮음)
                     try {
-                        analysisService.analyzeAndSave(bid.getBidId());
+                        //analysisService.analyzeAndSave(bid.getBidId());
                         analysisCount++;
                     } catch (Exception e) {
                         log.warn("AI 분석 요청 실패 (ID: {}): {}", bid.getBidRealId(), e.getMessage());
