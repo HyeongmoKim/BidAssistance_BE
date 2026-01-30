@@ -52,4 +52,3 @@ public class Comment {
         this.commentCreateAt = LocalDateTime.now();
     }
 }
-
