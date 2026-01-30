@@ -59,7 +59,7 @@ public class WishlistController {
     }
 
     @PatchMapping("/stage/{userId:\\d+}/{bidId:\\d+}")
-    public ResponseEntity<ApiResponse<Wishlist>> patchWish(
+    public ResponseEntity<ApiResponse<String>> patchWish(
             @PathVariable Integer userId, @PathVariable Integer bidId,
             @RequestParam Integer stage) {
         User user = userRepository.findById(userId)
@@ -70,6 +70,6 @@ public class WishlistController {
                 .orElseThrow(()-> new ResourceNotFoundException("찜 목록을 찾을 수 없습니다."));
         wl.setStage(stage);
         wishlistRepository.save(wl);
-        return ResponseEntity.ok(ApiResponse.success(wl));
+        return ResponseEntity.ok(ApiResponse.success("스테이지 변경 완료"));
     }
 }
