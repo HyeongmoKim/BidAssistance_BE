@@ -53,6 +53,9 @@ public class ChatBotService {
         if (reqFromClient.getThread_id() == null || reqFromClient.getThread_id().isBlank()) {
             reqFromClient.setThread_id("user_session_1");
         }
+        if (reqFromClient.getType() == null || reqFromClient.getType().isBlank()) {
+            reqFromClient.setType("query");
+        }
 // 2. 들어온 객체를 그대로 전달 (payload 포함됨)
         HttpEntity<PythonChatRequest> entity = new HttpEntity<>(reqFromClient, headers);
 
