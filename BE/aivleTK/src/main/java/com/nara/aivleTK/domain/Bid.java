@@ -1,5 +1,6 @@
 package com.nara.aivleTK.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.nara.aivleTK.domain.Attachment.Attachment;
 import jakarta.persistence.*;
 import lombok.*;
@@ -50,7 +51,8 @@ public class Bid {
     private Double minimumBidRate; // 낙찰하한율
     @Column
     private Double bidRange; // 투찰범위 (새로 추가됨)
-    @OneToMany(mappedBy = "bid", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "bid", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @JsonIgnore
     private List<Attachment> attachments = new ArrayList<>();
 }
