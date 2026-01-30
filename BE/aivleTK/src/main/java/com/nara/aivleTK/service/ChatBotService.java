@@ -36,7 +36,7 @@ public class ChatBotService {
     private final ObjectMapper objectMapper;
 
     // 파이썬 서버 주소
-    private final String PYTHON_URL = "http://localhost:8000/chat";
+    private final String PYTHON_URL = "https://aivleachatbot.greenpond-9eab36ab.koreacentral.azurecontainerapps.io/chat";
 
     public ChatResponse getChatResponse(PythonChatRequest reqFromClient) {
         // DTO에 payload 필드가 없으므로, 현재는 query만 보냅니다.
