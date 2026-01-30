@@ -5,14 +5,18 @@ import com.nara.aivleTK.domain.board.QBoard;
 import com.nara.aivleTK.dto.board.BoardListRequest;
 import com.nara.aivleTK.dto.board.BoardResponse;
 import com.nara.aivleTK.dto.board.CategoryCountsResponse;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,6 +30,8 @@ public class BoardRepositoryCustomImpl implements BoardRepositoryCustom {
         // Q클래스 가져오기 (QueryDSL 설정 되어 있어야 함)
         QBoard board = QBoard.board;
 
+        List<OrderSpecifier<?>> orders = getOrderSpecifiers(pageable);
+
         // 1. 컨텐츠 조회
         List<Board> content = queryFactory
                 .selectFrom(board)
@@ -36,9 +42,7 @@ public class BoardRepositoryCustomImpl implements BoardRepositoryCustom {
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .orderBy(
-                        // 정렬은 QueryDSL 동적 정렬 유틸을 쓰거나,
-                        // 여기서 간단히 board.createdAt.desc() 등으로 처리
-                        board.createdAt.desc())
+                        orders.toArray(OrderSpecifier[]::new))
                 .fetch();
 
         // 2. 전체 개수 조회 (페이징 위해 필요)
@@ -89,5 +93,27 @@ public class BoardRepositoryCustomImpl implements BoardRepositoryCustom {
         return StringUtils.hasText(q)
                 ? QBoard.board.title.contains(q).or(QBoard.board.content.contains(q))
                 : null;
+    }
+
+    private List<OrderSpecifier<?>> getOrderSpecifiers(Pageable pageable) {
+        List<OrderSpecifier<?>> orders = new ArrayList<>();
+        if (!pageable.getSort().isEmpty()) {
+            for (Sort.Order order : pageable.getSort()) {
+                Order direction = order.getDirection().isAscending() ? Order.ASC : Order.DESC;
+                switch (order.getProperty()) {
+                    case "viewCount":
+                        orders.add(new OrderSpecifier<>(direction, QBoard.board.viewCount));
+                        break;
+                    case "likeCount":
+                        orders.add(new OrderSpecifier<>(direction, QBoard.board.likeCount));
+                        break;
+                    case "createdAt":
+                    default:
+                        orders.add(new OrderSpecifier<>(direction, QBoard.board.createdAt));
+                        break;
+                }
+            }
+        }
+        return orders;
     }
 }
