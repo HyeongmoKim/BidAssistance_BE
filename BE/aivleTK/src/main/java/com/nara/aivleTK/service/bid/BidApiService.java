@@ -152,24 +152,22 @@ public class BidApiService {
                     try {
                         BidApiDto sourceDto = dtoMap.get(bid.getBidRealId());
 
-                        if (sourceDto != null) {
-                            // URL이 있는지 확인하고 저장 (Helper 메서드나 null 체크 활용)
-                            if (hasText(sourceDto.getBidReportUrl())) {
-                                attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName(), sourceDto.getBidReportUrl());
-                            }
-                            if (hasText(sourceDto.getBidReportUrl2())) {
-                                attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName2(), sourceDto.getBidReportUrl2());
-                            }
-                            if (hasText(sourceDto.getBidReportUrl3())) {
-                                attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName3(), sourceDto.getBidReportUrl3());
-                            }
-                            if (hasText(sourceDto.getBidReportUrl4())) {
-                                attachmentService.saveAttachmentInfoOnly(bid, sourceDto.getBidReportName4(), sourceDto.getBidReportUrl4());
-                            }
+                        Map<String, String> fileMap = sourceDto.getAllFileMap();
 
-                            attachmentCount++;
-                        } else {
-                            log.warn("첨부파일 매핑 실패: DTO를 찾을 수 없음 (ID: {})", bid.getBidRealId());
+                        // 1번부터 20번까지 싹 훑기
+                        for (int i = 1; i <= 20; i++) {
+                            String urlKey = "ntceSpecDocUrl" + i;
+                            String nameKey = "ntceSpecFileNm" + i;
+
+                            // 이제 i=1일 때도 map.get(urlKey)가 값을 뱉어냅니다!
+                            String fileUrl = fileMap.get(urlKey);
+                            String fileName = fileMap.get(nameKey);
+
+                            if (isValid(fileUrl)) {
+                                if (!isValid(fileName)) fileName = "공고문_" + i;
+                                attachmentService.saveAttachmentInfoOnly(bid, fileName, fileUrl);
+                                attachmentCount++;
+                            }
                         }
                     } catch (Exception e) {
                         log.error("첨부파일 저장 실패 (ID: {}): {}", bid.getBidRealId(), e.getMessage());
@@ -315,5 +313,8 @@ public class BidApiService {
             return true;
 
         return false;
+    }
+    private boolean isValid(String str) {
+        return str != null && !str.trim().isEmpty() && !"null".equals(str);
     }
 }

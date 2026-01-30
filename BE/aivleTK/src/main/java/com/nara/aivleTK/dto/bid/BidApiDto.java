@@ -1,5 +1,6 @@
 package com.nara.aivleTK.dto.bid;
 
+import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.nara.aivleTK.domain.Bid;
@@ -10,6 +11,8 @@ import lombok.ToString;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 
 @Getter
 @NoArgsConstructor
@@ -42,22 +45,6 @@ public class BidApiDto {
     @JsonProperty("bidNtceDt")
     private String bidCreated;
 
-    @JsonProperty("ntceSpecDocUrl1")
-    private String bidReportUrl;
-    @JsonProperty("ntceSpecFileNm1")
-    private String bidReportName;
-    @JsonProperty("ntceSpecDocUrl2")
-    private String bidReportUrl2;
-    @JsonProperty("ntceSpecFileNm2")
-    private String bidReportName2;
-    @JsonProperty("ntceSpecDocUrl3")
-    private String bidReportUrl3;
-    @JsonProperty("ntceSpecFileNm3")
-    private String bidReportName3;
-    @JsonProperty("ntceSpecDocUrl4")
-    private String bidReportUrl4;
-    @JsonProperty("ntceSpecFileNm4")
-    private String bidReportName4;
     @JsonProperty("bidNtceDtlUrl")
     private String bidURL;
 
@@ -86,6 +73,15 @@ public class BidApiDto {
 
     @JsonProperty("sucsfbidMthdNm") // 낙찰자결정방법 (예: "수의(견적제출)", "적격심사")
     private String successMethod;
+
+    private Map<String, String> allFileMap = new HashMap<>();
+
+    @JsonAnySetter
+    public void setDynamicField(String key, Object value) {
+        if (value != null && (key.startsWith("ntceSpecDocUrl") || key.startsWith("ntceSpecFileNm"))) {
+            this.allFileMap.put(key, String.valueOf(value));
+        }
+    }
 
     // === [ 3. DTO -> Entity 변환 ] ===
     public Bid toEntity() {
