@@ -28,8 +28,6 @@ public class Bid {
     @Column
     private String name;
     @Column
-    private String content;
-    @Column
     private LocalDateTime startDate;
     @Column(nullable = true)
     private LocalDateTime endDate;

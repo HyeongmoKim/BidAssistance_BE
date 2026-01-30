@@ -105,7 +105,6 @@ public class BidApiDto {
         return Bid.builder()
                 .bidRealId(realIdCombined)
                 .name(this.name)
-                .content(this.name) // 내용이 없으므로 제목으로 대체
                 .organization(this.organization)
                 .bidURL(this.bidURL)
                 .region(this.region)

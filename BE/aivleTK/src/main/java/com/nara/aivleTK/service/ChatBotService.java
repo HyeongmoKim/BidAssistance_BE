@@ -9,6 +9,8 @@ import com.nara.aivleTK.dto.chatBot.PythonChatRequest;
 import com.nara.aivleTK.repository.BidRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -106,6 +108,9 @@ public class ChatBotService {
 
     private ChatResponse handleSearchIntent(String jsonString, String originalPrompt, String threadId) {
         try {
+            int limit = 3;
+            var pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.ASC, "endDate"));
+
             JsonNode root = objectMapper.readTree(jsonString);
             JsonNode filter = root.path("filter");
 
@@ -156,8 +161,9 @@ public class ChatBotService {
                     startDateFrom, startDateTo,
                     endDateFrom, endDateTo,
                     openDateFrom, openDateTo,
-                    LocalDateTime.now()
-            );
+                    LocalDateTime.now(),
+                    pageable
+            ).getContent();
 
             if (searchResults.isEmpty()) {
                 return new ChatResponse("조건에 맞는 공고가 없습니다.");
