@@ -1,5 +1,6 @@
 package com.nara.aivleTK.dto.bid;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.nara.aivleTK.domain.Attachment.Attachment;
 import com.nara.aivleTK.domain.Bid;
 import com.nara.aivleTK.dto.AnalysisResultDto;
@@ -16,10 +17,12 @@ import java.util.stream.Collectors;
 @Setter
 @Builder
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class BidResponse {
     private int id;
     private String realId;
     private String name;
+    private Integer stage;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private LocalDateTime openDate;
@@ -38,6 +41,26 @@ public class BidResponse {
         this.id = bid.getBidId();
         this.realId = bid.getBidRealId();
         this.name = bid.getName();
+        this.stage = null;
+        this.startDate = bid.getStartDate();
+        this.endDate = bid.getEndDate();
+        this.openDate = bid.getOpenDate();
+        this.bidCreated = bid.getBidCreated();
+        this.region = bid.getRegion();
+        this.organization = bid.getOrganization();
+        this.bidURL = bid.getBidURL();
+        this.estimatePrice = bid.getEstimatePrice();
+        this.minimumBidRate = bid.getMinimumBidRate();
+        this.attachments = bid.getAttachments().stream()
+                .map(AttachmentResponse::from)
+                .collect(Collectors.toList());
+    }
+
+    public BidResponse(Bid bid, Integer stage) {
+        this.id = bid.getBidId();
+        this.realId = bid.getBidRealId();
+        this.name = bid.getName();
+        this.stage = stage;
         this.startDate = bid.getStartDate();
         this.endDate = bid.getEndDate();
         this.openDate = bid.getOpenDate();

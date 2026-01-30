@@ -48,7 +48,7 @@ public class WishlistServiceImpl implements WishlistService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         return wishlistRepository.findByUser(user).stream()
-                .map(wishlist -> new BidResponse(wishlist.getBid()))
+                .map(wishlist -> new BidResponse(wishlist.getBid(), wishlist.getStage()))
                 .collect(Collectors.toList());
     }
 }
