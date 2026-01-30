@@ -45,12 +45,16 @@ public class ChatBotService {
         String threadId = (reqFromClient.getThread_id() == null || reqFromClient.getThread_id().isBlank())
                 ? "user_session_1"
                 : reqFromClient.getThread_id();
-        PythonChatRequest requestPayload = new PythonChatRequest(prompt, threadId);
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("ngrok-skip-browser-warning", "true");
         headers.add("Content-Type", "application/json");
-        HttpEntity<PythonChatRequest> entity = new HttpEntity<>(requestPayload, headers);
+
+        if (reqFromClient.getThread_id() == null || reqFromClient.getThread_id().isBlank()) {
+            reqFromClient.setThread_id("user_session_1");
+        }
+// 2. 들어온 객체를 그대로 전달 (payload 포함됨)
+        HttpEntity<PythonChatRequest> entity = new HttpEntity<>(reqFromClient, headers);
 
         try {
             ResponseEntity<Map> responseEntity = restTemplate.postForEntity(PYTHON_URL, entity, Map.class);
