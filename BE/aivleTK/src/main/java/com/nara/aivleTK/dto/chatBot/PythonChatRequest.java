@@ -1,5 +1,6 @@
 package com.nara.aivleTK.dto.chatBot;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.nara.aivleTK.domain.Bid;
 import lombok.*;
 
@@ -12,9 +13,13 @@ import java.util.Map;
 @AllArgsConstructor
 @Builder
 public class PythonChatRequest {
+        @JsonProperty("type")
         private String type;
+        @JsonProperty("query")
         private String query;
+        @JsonProperty("payload")
         private Object payload;
+        @JsonProperty("thread_id")
         private String thread_id;
 
         // 편의용 생성자 (질문만 보낼 때)
