@@ -24,7 +24,7 @@ public class Comment {
     @Column(name="comment_id")
     private Integer commentId;
 
-    @Column(name="comment_content", columnDefinition = "TEXT", nullable = false)
+    @Column(name = "content", columnDefinition = "TEXT", nullable = false)
     private String commentContent;
 
     @Column(name="comment_date",nullable = false)
@@ -46,10 +46,8 @@ public class Comment {
     @JoinColumn(name = "parent_comment_id")
     private Comment parent;
 
-
     @PrePersist
     public void onCreate() {
         this.commentCreateAt = LocalDateTime.now();
     }
 }
-
