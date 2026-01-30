@@ -19,7 +19,7 @@ public class ChatBotController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<ChatResponse>> chat(@RequestBody PythonChatRequest request){
-        ChatResponse response = chatBotService.getChatResponse(request.getQuery());
+        ChatResponse response = chatBotService.getChatResponse(request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

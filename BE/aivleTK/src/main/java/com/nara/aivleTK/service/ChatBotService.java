@@ -3,6 +3,7 @@ package com.nara.aivleTK.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nara.aivleTK.domain.Bid;
+import com.nara.aivleTK.dto.chatBot.BidChatDto;
 import com.nara.aivleTK.dto.chatBot.ChatResponse;
 import com.nara.aivleTK.dto.chatBot.PythonChatRequest;
 import com.nara.aivleTK.repository.BidRepository;
@@ -14,10 +15,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.math.BigInteger;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,12 +34,16 @@ public class ChatBotService {
     private final ObjectMapper objectMapper;
 
     // 파이썬 서버 주소
-    private final String PYTHON_URL = "https://aivleachatbot.greenpond-9eab36ab.koreacentral.azurecontainerapps.io/chat";
+    private final String PYTHON_URL = "http://localhost:8000/chat";
 
-    public ChatResponse getChatResponse(String prompt) {
+    public ChatResponse getChatResponse(PythonChatRequest reqFromClient) {
         // DTO에 payload 필드가 없으므로, 현재는 query만 보냅니다.
         // 추후 요약 기능을 위해서는 PythonChatRequest DTO에 payload 필드 추가가 필요합니다.
-        PythonChatRequest requestPayload = new PythonChatRequest(prompt, "user_session_1");
+        String prompt = reqFromClient.getQuery();
+        String threadId = (reqFromClient.getThread_id() == null || reqFromClient.getThread_id().isBlank())
+                ? "user_session_1"
+                : reqFromClient.getThread_id();
+        PythonChatRequest requestPayload = new PythonChatRequest(prompt, threadId);
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("ngrok-skip-browser-warning", "true");
@@ -51,18 +58,19 @@ public class ChatBotService {
                 return new ChatResponse("AI 서버로부터 응답이 없습니다.");
             }
 
-            String aiContent = (String) body.get("response");
+            String respType = String.valueOf(body.get("type"));      // ✅ Python이 내려주는 타입
+            String respText = String.valueOf(body.get("response"));  // ✅ 실제 내용
 
             // ★ 1. 마크다운 제거 (안정성 강화)
-            String sanitizedContent = sanitizeAiResponse(aiContent);
-            log.info("AI 응답(Sanitized): {}", sanitizedContent);
-
-            // ★ 2. 수정된 의도 파악 로직 사용
-            if (isSearchIntent(sanitizedContent)) {
-                return handleSearchIntent(sanitizedContent);
-            } else {
-                return new ChatResponse(aiContent);
+            if ("search".equals(respType)) {
+                // 검색조건 JSON 문자열일 확률이 매우 높음
+                String sanitized = sanitizeAiResponse(respText); // 백틱 제거용으로만 남겨도 됨
+                return handleSearchIntent(sanitized, prompt, threadId); // (너가 이미 만든 시그니처 기준)
             }
+            if ("summary".equals(respType) || "chat".equals(respType)) {
+                return new ChatResponse(respText);
+            }
+            return new ChatResponse(respText);
 
         } catch (Exception e) {
             log.error("AI 서버 연결 실패: {}", e.getMessage());
@@ -96,7 +104,7 @@ public class ChatBotService {
         }
     }
 
-    private ChatResponse handleSearchIntent(String jsonString) {
+    private ChatResponse handleSearchIntent(String jsonString, String originalPrompt, String threadId) {
         try {
             JsonNode root = objectMapper.readTree(jsonString);
             JsonNode filter = root.path("filter");
@@ -151,11 +159,20 @@ public class ChatBotService {
                     LocalDateTime.now()
             );
 
-            if (!searchResults.isEmpty()) {
-                return new ChatResponse("검색 결과 " + searchResults.size() + "건을 찾았습니다.", "list", searchResults);
-            } else {
+            if (searchResults.isEmpty()) {
                 return new ChatResponse("조건에 맞는 공고가 없습니다.");
             }
+
+            // ✅ (추가) 엔티티 -> DTO 변환 (핵심)
+            List<BidChatDto> dtoList = searchResults.stream()
+                    .map(this::toBidChatDto)
+                    .toList();
+
+            // ✅ (변경) postprocess도 DTO로 전달
+            String summary = callPythonPostprocess(originalPrompt, threadId, dtoList);
+
+            // ✅ (변경) 응답 data도 DTO로 내려줌
+            return new ChatResponse(summary, "list", dtoList);
 
         } catch (Exception e) {
             log.error("검색 처리 중 오류", e);
@@ -239,4 +256,78 @@ public class ChatBotService {
         }
         return targetDate;
     }
+    private String callPythonPostprocess(String originalPrompt, String threadId, List<BidChatDto>  searchResults) {
+        try {
+            // Bid -> Map 요약 변환 (필요한 필드만)
+            List<Map<String, Object>> results = searchResults.stream().map(b -> {
+                Map<String, Object> m = new HashMap<>();
+                m.put("bidId", b.getBidId());
+                m.put("bidRealId", b.getBidRealId());
+                m.put("name", b.getName());
+                m.put("region", b.getRegion());
+                m.put("organization", b.getOrganization());
+                m.put("startDate", b.getStartDate());
+                m.put("endDate", b.getEndDate());
+                m.put("openDate", b.getOpenDate());
+                return m;
+            }).toList();
+
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("query", originalPrompt);
+            payload.put("count", results.size());
+            payload.put("results", results);
+            PythonChatRequest req = PythonChatRequest.builder()
+                    .type("notice_result")     // ✅ query가 아닌 다른 타입이면 main.py가 payload json으로 넣어줌 :contentReference[oaicite:3]{index=3}
+                    .query("")                 // 의미 없음
+                    .payload(payload)
+                    .thread_id(threadId)
+                    .build();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("ngrok-skip-browser-warning", "true");
+            headers.add("Content-Type", "application/json");
+            HttpEntity<PythonChatRequest> entity = new HttpEntity<>(req, headers);
+
+            ResponseEntity<Map> responseEntity = restTemplate.postForEntity(PYTHON_URL, entity, Map.class);
+            Map<String, Object> body = responseEntity.getBody();
+
+            if (body == null || !body.containsKey("response")) {
+                return "검색 결과 " + searchResults.size() + "건을 찾았습니다.";
+            }
+
+            return String.valueOf(body.get("response"));
+
+        } catch (Exception e) {
+            log.warn("postprocess 호출 실패: {}", e.getMessage());
+            return "검색 결과 " + searchResults.size() + "건을 찾았습니다.";
+        }
+    }
+    private BidChatDto toBidChatDto(Bid b) {
+        return new BidChatDto(
+                b.getBidId(),
+                b.getBidRealId(),
+                b.getName(),
+                b.getRegion(),
+                b.getOrganization(),
+                b.getStartDate(),
+                b.getEndDate(),
+                b.getOpenDate(),
+                bigIntToLongSafe(b.getEstimatePrice()),
+                bigIntToLongSafe(b.getBasicPrice()),
+                b.getMinimumBidRate(),
+                b.getBidRange()
+        );
+    }
+
+    private Long bigIntToLongSafe(BigInteger v) {
+        if (v == null) return null;
+        try {
+            return v.longValueExact();
+        } catch (ArithmeticException e) {
+            // Long 범위 초과 대비 (현실적으로 거의 없음)
+            return v.longValue();
+        }
+    }
+
+
 }
