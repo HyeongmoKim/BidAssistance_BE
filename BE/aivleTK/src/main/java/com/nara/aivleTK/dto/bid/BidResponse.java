@@ -23,6 +23,7 @@ public class BidResponse {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private LocalDateTime openDate;
+    private LocalDateTime bidCreated;
     private String region;
     private String organization;
     private String bidURL;
@@ -40,6 +41,7 @@ public class BidResponse {
         this.startDate = bid.getStartDate();
         this.endDate = bid.getEndDate();
         this.openDate = bid.getOpenDate();
+        this.bidCreated = bid.getBidCreated();
         this.region = bid.getRegion();
         this.organization = bid.getOrganization();
         this.bidURL = bid.getBidURL();
