@@ -6,6 +6,7 @@ import com.nara.aivleTK.domain.Comment;
 import com.nara.aivleTK.domain.user.User;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Formula;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -51,6 +52,9 @@ public class Board extends AutoTimeRecode {
 
     @Column(name = "view_count", nullable = false)
     private Integer viewCount;
+
+    @Formula("(SELECT count(1) FROM comment c WHERE c.board_id = board_id)")
+    private Long commentCount;
 
     @CreatedDate
     @Column(updatable = false)

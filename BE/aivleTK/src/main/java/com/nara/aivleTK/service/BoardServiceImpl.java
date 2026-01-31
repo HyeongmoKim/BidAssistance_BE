@@ -35,7 +35,8 @@ public class BoardServiceImpl implements BoardService {
 
     @Transactional // 게시글 생성
     public BoardResponse creatPost(BoardRequest br) {
-        User user = userRepository.findById(br.getUserId()).orElseThrow(()-> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        User user = userRepository.findById(br.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         Board board = Board.builder()
                 .title(br.getTitle()).content(br.getContent())
@@ -83,33 +84,42 @@ public class BoardServiceImpl implements BoardService {
     public void deletePost(Integer id, Integer userId) {
         Board board = boardRepository.findById(id).orElseThrow();
         User user = userRepository.findById(userId).orElseThrow();
-        if ((!board.getUser().getId().equals(userId)) && (user.getRole() != 2))  { // 관리자가 아니거나 작성자가 아니거나
+        if ((!board.getUser().getId().equals(userId)) && (user.getRole() != 2)) { // 관리자가 아니거나 작성자가 아니거나
             throw new IllegalStateException("삭제 권한이 없습니다.");
         }
         boardRepository.delete(board);
     }
 
+    @Override
+    @Transactional(readOnly = true)
     public BoardListResponse getBoardList(BoardListRequest blr, Integer userId) {
         int page = ((blr.getPage() != null) && (blr.getPage() > 0)) ? blr.getPage() - 1 : 0;
         int size = (blr.getSize() != null) ? blr.getSize() : 10;
 
         Sort sort = Sort.by("createdAt").descending();
         if ("popular".equals(blr.getSort())) {
-            sort = Sort.by("viewCount").descending();
-        } else if ("likes".equals(blr.getSort())) {
             sort = Sort.by("likeCount").descending();
+        } else if ("views".equals(blr.getSort())) {
+            sort = Sort.by("viewCount").descending();
+        } else if ("comments".equals(blr.getSort())) {
+            sort = Sort.by("commentCount").descending();
         }
+
         Pageable pageable = PageRequest.of(page, size, sort);
 
         Page<BoardResponse> boardPage = boardRepository.search(blr, pageable);
 
         List<BoardListItemResponse> items = boardPage.getContent().stream()
-                .map(boardResponse -> {
-                    Board board = boardRepository.findById(boardResponse.getId()).orElseThrow();
-                    boolean likedByMe = false;
-                    int commentCount = 0;
-                    return BoardListItemResponse.from(board, likedByMe, commentCount);
-                })
+                .map(dto -> BoardListItemResponse.builder()
+                        .postId(dto.getId())
+                        .title(dto.getTitle())
+                        .authorName(dto.getUserName())
+                        .views(dto.getViewCount())
+                        .likes(dto.getLikeCount())
+                        .commentCount(dto.getCommentCount().intValue()) // Long -> int 변환하여 사용
+                        .createdAt(dto.getCreatedAt())
+                        .likedByMe(false)
+                        .build())
                 .collect(Collectors.toList());
 
         CategoryCountsResponse counts = boardRepository.getCategoryCounts();

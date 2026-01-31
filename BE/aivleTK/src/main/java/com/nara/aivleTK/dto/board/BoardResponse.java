@@ -20,6 +20,7 @@ public class BoardResponse {
     private String category;
     private Integer likeCount;
     private Integer viewCount;
+    private Long commentCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<AttachmentResponse> attachments;
@@ -39,6 +40,7 @@ public class BoardResponse {
                 .category(board.getCategory())
                 .likeCount(board.getLikeCount())
                 .viewCount(board.getViewCount())
+                .commentCount(board.getCommentCount())
                 .createdAt(board.getCreatedAt())
                 .updatedAt(board.getUpdatedAt())
                 .attachments(attachmentResponses)
@@ -54,6 +56,7 @@ public class BoardResponse {
         this.content = board.getContent();
         this.likeCount = board.getLikeCount();
         this.viewCount = board.getViewCount();
+        this.commentCount = board.getCommentCount();
         this.createdAt = board.getCreatedAt();
         this.updatedAt = board.getUpdatedAt();
         this.attachments = board.getAttachments() != null

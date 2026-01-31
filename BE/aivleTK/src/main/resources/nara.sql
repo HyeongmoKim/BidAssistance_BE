@@ -46,7 +46,6 @@ CREATE TABLE IF NOT EXISTS `user` (
   `tag` TINYINT NULL,
   PRIMARY KEY (`user_id`),
   INDEX `fk_user_company1_idx` (`company_id` ASC) VISIBLE,
-  UNIQUE INDEX `name_UNIQUE` (`name` ASC) VISIBLE,
   UNIQUE INDEX `email_UNIQUE` (`email` ASC) VISIBLE,
   UNIQUE INDEX `user_id_UNIQUE` (`user_id` ASC) VISIBLE,
   CONSTRAINT `fk_user_company1`

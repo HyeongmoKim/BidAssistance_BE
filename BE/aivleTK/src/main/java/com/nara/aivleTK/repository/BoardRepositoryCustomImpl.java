@@ -27,33 +27,31 @@ public class BoardRepositoryCustomImpl implements BoardRepositoryCustom {
 
     @Override
     public Page<BoardResponse> search(BoardListRequest condition, Pageable pageable) {
-        // Q클래스 가져오기 (QueryDSL 설정 되어 있어야 함)
         QBoard board = QBoard.board;
 
         List<OrderSpecifier<?>> orders = getOrderSpecifiers(pageable);
 
-        // 1. 컨텐츠 조회
         List<Board> content = queryFactory
-                .selectFrom(board)
-                .where(
-                        categoryEq(condition.getCategory()), // 카테고리 조건
-                        titleOrContentContains(condition.getQ()) // 검색어 조건
-                )
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .orderBy(
-                        orders.toArray(OrderSpecifier[]::new))
-                .fetch();
-
-        // 2. 전체 개수 조회 (페이징 위해 필요)
-        long total = queryFactory
                 .selectFrom(board)
                 .where(
                         categoryEq(condition.getCategory()),
                         titleOrContentContains(condition.getQ()))
-                .fetch()
-                .stream()
-                .count();
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .orderBy(orders.toArray(OrderSpecifier[]::new))
+                .fetch();
+
+        Long total = queryFactory
+                .select(board.count())
+                .from(board)
+                .where(
+                        categoryEq(condition.getCategory()),
+                        titleOrContentContains(condition.getQ()))
+                .fetchOne();
+
+        if (total == null) {
+            total = 0L;
+        }
 
         List<BoardResponse> responses = content.stream()
                 .map(BoardResponse::new)
@@ -103,9 +101,15 @@ public class BoardRepositoryCustomImpl implements BoardRepositoryCustom {
                 switch (order.getProperty()) {
                     case "viewCount":
                         orders.add(new OrderSpecifier<>(direction, QBoard.board.viewCount));
+                        orders.add(new OrderSpecifier<>(Order.DESC, QBoard.board.createdAt));
                         break;
                     case "likeCount":
                         orders.add(new OrderSpecifier<>(direction, QBoard.board.likeCount));
+                        orders.add(new OrderSpecifier<>(Order.DESC, QBoard.board.createdAt));
+                        break;
+                    case "commentCount":
+                        orders.add(new OrderSpecifier<>(direction, QBoard.board.commentCount));
+                        orders.add(new OrderSpecifier<>(Order.DESC, QBoard.board.createdAt));
                         break;
                     case "createdAt":
                     default:
