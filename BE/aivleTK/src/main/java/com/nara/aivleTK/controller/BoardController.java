@@ -102,7 +102,7 @@ public class BoardController {
                     userId = jwtUtil.getUserInfoFromToken(token).get("user_id", Integer.class);
                 }
             } catch (Exception e) {
-
+                throw new ResourceNotFoundException("게시글을 불러올 수 없습니다.");
             }
         }
 

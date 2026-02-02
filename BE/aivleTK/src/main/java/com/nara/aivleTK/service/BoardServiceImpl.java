@@ -113,6 +113,7 @@ public class BoardServiceImpl implements BoardService {
                 .map(dto -> BoardListItemResponse.builder()
                         .postId(dto.getId())
                         .title(dto.getTitle())
+                        .category(dto.getCategory())
                         .authorName(dto.getUserName())
                         .views(dto.getViewCount())
                         .likes(dto.getLikeCount())
