@@ -24,7 +24,7 @@ public class Comment {
     @Column(name="comment_id")
     private Integer commentId;
 
-    @Column(name = "content", columnDefinition = "TEXT", nullable = false)
+    @Column(name = "comment_content", columnDefinition = "TEXT", nullable = false)
     private String commentContent;
 
     @Column(name="comment_date",nullable = false)
