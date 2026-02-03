@@ -176,7 +176,6 @@ CREATE TABLE IF NOT EXISTS `bid_log` (
   `user_id` INT NOT NULL,
   `bid_id` INT NOT NULL,
   `date` TIMESTAMP NOT NULL,
-  `price` BIGINT NULL,
   PRIMARY KEY (`bid_log_id`),
   INDEX `fk_bid_log_user1_idx` (`user_id` ASC) VISIBLE,
   INDEX `fk_bid_log_bid1_idx` (`bid_id` ASC) VISIBLE,
@@ -227,17 +226,17 @@ DROP TABLE IF EXISTS `comment` ;
 
 CREATE TABLE IF NOT EXISTS `comment` (
   `comment_id` INT NOT NULL AUTO_INCREMENT,
-  `content` VARCHAR(300) NOT NULL,
-  `date` TIMESTAMP NOT NULL,
+  `comment_content` VARCHAR(300) NOT NULL,
+  `comment_date` TIMESTAMP NOT NULL,
   `bid_id` INT NULL,
   `board_id` INT NULL,
   `parent_comment_id` INT NULL,
-  `user_user_id` INT NOT NULL,
+  `users_user_id` INT NOT NULL,
   PRIMARY KEY (`comment_id`),
   INDEX `fk_comment_bid1_idx` (`bid_id` ASC) VISIBLE,
   INDEX `fk_comment_board1_idx` (`board_id` ASC) VISIBLE,
   INDEX `fk_comment_comment1_idx` (`parent_comment_id` ASC) VISIBLE,
-  INDEX `fk_comment_user1_idx` (`user_user_id` ASC) VISIBLE,
+  INDEX `fk_comment_user1_idx` (`users_user_id` ASC) VISIBLE,
   UNIQUE INDEX `comment_id_UNIQUE` (`comment_id` ASC) VISIBLE,
   CONSTRAINT `fk_comment_bid1`
     FOREIGN KEY (`bid_id`)
@@ -255,7 +254,7 @@ CREATE TABLE IF NOT EXISTS `comment` (
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_comment_user1`
-    FOREIGN KEY (`user_user_id`)
+    FOREIGN KEY (`users_user_id`)
     REFERENCES `user` (`user_id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)

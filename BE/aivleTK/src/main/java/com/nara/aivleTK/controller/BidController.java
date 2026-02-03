@@ -14,6 +14,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BidController {
     private final BidService bidService;
+    private final com.nara.aivleTK.service.bid.RecommendationService recommendationService;
+    private final com.nara.aivleTK.service.bid.BidLogService bidLogService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<BidResponse>>> getBids(
@@ -25,6 +27,18 @@ public class BidController {
                 : bidService.searchBid(name, region, organization);
 
         return ResponseEntity.ok(ApiResponse.success(bids));
+    }
+
+    @GetMapping("/recommendations")
+    public ResponseEntity<ApiResponse<List<BidResponse>>> getRecommendations(@RequestParam Integer userId) {
+        List<BidResponse> list = recommendationService.getRecommendations(userId);
+        return ResponseEntity.ok(ApiResponse.success(list));
+    }
+
+    @PostMapping("/{id}/log")
+    public ResponseEntity<ApiResponse<Void>> logBidView(@PathVariable Integer id, @RequestParam Integer userId) {
+        bidLogService.logView(userId, id);
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     private boolean isBlank(String s) {
