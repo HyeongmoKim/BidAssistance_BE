@@ -2,12 +2,14 @@ package com.nara.aivleTK.controller;
 
 import com.nara.aivleTK.domain.Alarm;
 import com.nara.aivleTK.dto.ApiResponse;
+import com.nara.aivleTK.dto.alarm.AlarmResponse;
 import com.nara.aivleTK.service.bid.AlarmService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/alarms")
@@ -28,9 +30,12 @@ public class AlarmController {
 
     // 2. 내 알림 목록 조회 API
     @GetMapping("/{userId:\\d+}")
-    public ResponseEntity<ApiResponse<List<Alarm>>> getMyAlarms(@PathVariable Integer userId) {
+    public ResponseEntity<ApiResponse<List<AlarmResponse>>> getMyAlarms(@PathVariable Integer userId) {
         List<Alarm> alarms = alarmService.getMyAlarms(userId);
-        return ResponseEntity.ok(ApiResponse.success(alarms));
+        List<AlarmResponse> responses = alarms.stream()
+                .map(AlarmResponse::from)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
     // 3. 알림 삭제 API

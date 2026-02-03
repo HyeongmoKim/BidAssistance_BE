@@ -29,6 +29,12 @@ public class BidController {
         return ResponseEntity.ok(ApiResponse.success(bids));
     }
 
+    @GetMapping("/batch")
+    public ResponseEntity<ApiResponse<List<BidResponse>>> getBidsBatch(@RequestParam List<Integer> ids) {
+        List<BidResponse> bids = bidService.getBidsByIds(ids);
+        return ResponseEntity.ok(ApiResponse.success(bids));
+    }
+
     @GetMapping("/recommendations")
     public ResponseEntity<ApiResponse<List<BidResponse>>> getRecommendations(@RequestParam Integer userId) {
         List<BidResponse> list = recommendationService.getRecommendations(userId);

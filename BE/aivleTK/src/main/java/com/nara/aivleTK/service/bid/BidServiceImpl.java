@@ -77,6 +77,18 @@ public class BidServiceImpl implements BidService {
                                                 .analysisContent(ar.getAnalysisContent())
                                                 .build()));
                 bidDetailService.getByBidId(id).ifPresent(response::setBidDetail);
+                bidDetailService.getByBidId(id).ifPresent(response::setBidDetail);
                 return response;
+        }
+
+        @Override
+        @Transactional(readOnly = true)
+        public List<BidResponse> getBidsByIds(List<Integer> ids) {
+                if (ids == null || ids.isEmpty()) {
+                        return List.of();
+                }
+                return bidRepository.findAllById(ids).stream()
+                                .map(BidResponse::new)
+                                .toList();
         }
 }

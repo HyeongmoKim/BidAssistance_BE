@@ -32,6 +32,8 @@ public class BidResponse {
     private String bidURL;
     private String bidReportURL;
     private BigInteger estimatePrice;
+    private BigInteger basicPrice;
+    private Double bidRange;
     private Double minimumBidRate;
     private AnalysisResultDto analysisResult;
     private BidDetailDto bidDetail;
@@ -50,6 +52,8 @@ public class BidResponse {
         this.organization = bid.getOrganization();
         this.bidURL = bid.getBidURL();
         this.estimatePrice = bid.getEstimatePrice();
+        this.basicPrice = bid.getBasicPrice();
+        this.bidRange = bid.getBidRange();
         this.minimumBidRate = bid.getMinimumBidRate();
         this.attachments = bid.getAttachments().stream()
                 .map(AttachmentResponse::from)
@@ -69,6 +73,8 @@ public class BidResponse {
         this.organization = bid.getOrganization();
         this.bidURL = bid.getBidURL();
         this.estimatePrice = bid.getEstimatePrice();
+        this.basicPrice = bid.getBasicPrice();
+        this.bidRange = bid.getBidRange();
         this.minimumBidRate = bid.getMinimumBidRate();
         this.attachments = bid.getAttachments().stream()
                 .map(AttachmentResponse::from)

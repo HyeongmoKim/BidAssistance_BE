@@ -28,7 +28,7 @@ public class JwtUtil {
 
     public static final String BEARER_PREFIX = "Bearer ";
 
-    private final long TOKEN_TIME = 30*60*1000L; // 30분 분 초 밀리세컨
+    private final long TOKEN_TIME = 30 * 60 * 1000L; // 30분 분 초 밀리세컨
 
     @Value("${jwt.secret.key}")
     private String secretkey;
@@ -85,7 +85,7 @@ public class JwtUtil {
         throw new NullPointerException("Not Found Token");
     }
 
-    //토큰 확인
+    // 토큰 확인
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
