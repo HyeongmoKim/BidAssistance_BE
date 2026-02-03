@@ -2,6 +2,7 @@ package com.nara.aivleTK.repository;
 
 import com.nara.aivleTK.domain.board.Board;
 import com.nara.aivleTK.domain.board.QBoard;
+import com.nara.aivleTK.domain.user.QUser;
 import com.nara.aivleTK.dto.board.BoardListRequest;
 import com.nara.aivleTK.dto.board.BoardResponse;
 import com.nara.aivleTK.dto.board.CategoryCountsResponse;
@@ -26,13 +27,15 @@ public class BoardRepositoryCustomImpl implements BoardRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<BoardResponse> search(BoardListRequest condition, Pageable pageable) {
+    public Page<Board> search(BoardListRequest condition, Pageable pageable) {
         QBoard board = QBoard.board;
+        QUser user = QUser.user;
 
         List<OrderSpecifier<?>> orders = getOrderSpecifiers(pageable);
 
         List<Board> content = queryFactory
                 .selectFrom(board)
+                .leftJoin(board.user, user).fetchJoin()
                 .where(
                         categoryEq(condition.getCategory()),
                         titleOrContentContains(condition.getQ()))
@@ -53,26 +56,45 @@ public class BoardRepositoryCustomImpl implements BoardRepositoryCustom {
             total = 0L;
         }
 
-        List<BoardResponse> responses = content.stream()
-                .map(BoardResponse::new)
-                .collect(Collectors.toList());
+        if (total == null) {
+            total = 0L;
+        }
 
-        return new PageImpl<>(responses, pageable, total);
+        return new PageImpl<>(content, pageable, total);
     }
 
     @Override
     public CategoryCountsResponse getCategoryCounts() {
         QBoard board = QBoard.board;
 
-        List<Board> allBoards = queryFactory
-                .selectFrom(board)
+        List<com.querydsl.core.Tuple> results = queryFactory
+                .select(board.category, board.count())
+                .from(board)
+                .groupBy(board.category)
                 .fetch();
 
-        long all = allBoards.size();
-        long question = allBoards.stream().filter(b -> "1".equals(b.getCategory())).count();
-        long info = allBoards.stream().filter(b -> "2".equals(b.getCategory())).count();
-        long review = allBoards.stream().filter(b -> "3".equals(b.getCategory())).count();
-        long discussion = allBoards.stream().filter(b -> "4".equals(b.getCategory())).count();
+        long all = 0;
+        long question = 0;
+        long info = 0;
+        long review = 0;
+        long discussion = 0;
+
+        for (com.querydsl.core.Tuple t : results) {
+            String cat = t.get(board.category);
+            Long count = t.get(board.count());
+            if (count == null)
+                count = 0L;
+
+            all += count;
+            if ("question".equals(cat) || "1".equals(cat))
+                question += count; // DB category might be "question" or "1" depending on legacy
+            else if ("info".equals(cat) || "2".equals(cat))
+                info += count;
+            else if ("review".equals(cat) || "3".equals(cat))
+                review += count;
+            else if ("discussion".equals(cat) || "4".equals(cat))
+                discussion += count;
+        }
 
         return CategoryCountsResponse.builder()
                 .all(all)

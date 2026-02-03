@@ -19,25 +19,31 @@ public class CommentResponse {
     private Integer bidId;
     private Integer parentCommentId;
     private Integer boardId;
+    private Boolean isAdopted; // 채택 여부
+    private Integer userExpertLevel; // 작성자 등급 (1~5)
 
-
-    public CommentResponse(Comment comment){
+    public CommentResponse(Comment comment) {
         this.commentId = comment.getCommentId();
         this.content = comment.getCommentContent();
         this.commentCreatedAt = comment.getCommentCreateAt();
-        if(comment.getUser()!=null){
+        if (comment.getUser() != null) {
             this.userId = comment.getUser().getId();
             this.userName = comment.getUser().getName();
         }
-        if(comment.getBid()!=null){
+        if (comment.getBid() != null) {
             this.bidId = comment.getBid().getBidId();
         }
-        if(comment.getBoard()!=null){
+        if (comment.getBoard() != null) {
             this.boardId = comment.getBoard().getId();
         }
-        if(comment.getParent()!=null){
+        if (comment.getParent() != null) {
             this.parentCommentId = comment.getParent().getCommentId();
         }
-
+        this.isAdopted = comment.getIsAdopted() != null ? comment.getIsAdopted() : false;
+        if (comment.getUser() != null) {
+            this.userExpertLevel = comment.getUser().getExpertLevel() != null ? comment.getUser().getExpertLevel() : 1;
+        } else {
+            this.userExpertLevel = 1;
+        }
     }
 }

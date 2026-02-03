@@ -1,6 +1,5 @@
 package com.nara.aivleTK.service.bid;
 
-import com.nara.aivleTK.domain.AnalysisResult;
 import com.nara.aivleTK.domain.Attachment.Attachment;
 import com.nara.aivleTK.domain.Bid;
 import com.nara.aivleTK.dto.AnalysisResultDto;

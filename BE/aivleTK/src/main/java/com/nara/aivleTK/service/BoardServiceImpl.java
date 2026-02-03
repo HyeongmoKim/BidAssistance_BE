@@ -13,7 +13,6 @@ import com.nara.aivleTK.repository.AttachmentRepository;
 import com.nara.aivleTK.repository.BoardRepository;
 import com.nara.aivleTK.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.apache.qpid.proton.amqp.transport.Attach;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -107,20 +106,20 @@ public class BoardServiceImpl implements BoardService {
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<BoardResponse> boardPage = boardRepository.search(blr, pageable);
+        // Fetch liked board IDs for the current user if userId is provided
+        // Set<Integer> finalLikedBoardIds = null; // Logic removed as
+        // User.getLikedBoards() is missing or failing
+
+        Page<Board> boardPage = boardRepository.search(blr, pageable);
 
         List<BoardListItemResponse> items = boardPage.getContent().stream()
-                .map(dto -> BoardListItemResponse.builder()
-                        .postId(dto.getId())
-                        .title(dto.getTitle())
-                        .category(dto.getCategory())
-                        .authorName(dto.getUserName())
-                        .views(dto.getViewCount())
-                        .likes(dto.getLikeCount())
-                        .commentCount(dto.getCommentCount().intValue()) // Long -> int 변환하여 사용
-                        .createdAt(dto.getCreatedAt())
-                        .likedByMe(false)
-                        .build())
+                .map(board -> {
+                    // Comment mapping might be lazy, but BoardListItemResponse.from handles it or
+                    // we use count
+                    // Board has commentCount field? Yes.
+                    return BoardListItemResponse.from(board, false,
+                            board.getCommentCount() != null ? board.getCommentCount().intValue() : 0);
+                })
                 .collect(Collectors.toList());
 
         CategoryCountsResponse counts = boardRepository.getCategoryCounts();
@@ -132,5 +131,52 @@ public class BoardServiceImpl implements BoardService {
                 .total(boardPage.getTotalElements())
                 .counts(counts)
                 .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BoardListItemResponse> getTrendingPosts() {
+        // 최근 30일 내 게시글만 대상으로 함
+        java.time.LocalDateTime cutoff = java.time.LocalDateTime.now().minusDays(30);
+
+        List<Board> recentBoards = boardRepository.findAllByCreatedAtAfter(cutoff);
+
+        // 시간 가중치 적용 점수 계산
+        java.time.LocalDate today = java.time.LocalDate.now();
+
+        return recentBoards.stream()
+                .map(board -> {
+                    long daysSincePosted = java.time.temporal.ChronoUnit.DAYS.between(
+                            board.getCreatedAt().toLocalDate(), today);
+                    double decayFactor = Math.pow(0.7, daysSincePosted);
+                    double score = (board.getLikeCount() != null ? board.getLikeCount() : 0) * decayFactor;
+
+                    return new Object[] { board, score };
+                })
+                .sorted((a, b) -> Double.compare((Double) b[1], (Double) a[1]))
+                .limit(3)
+                .map(arr -> {
+                    Board board = (Board) arr[0];
+                    return BoardListItemResponse.builder()
+                            .postId(board.getId())
+                            .title(board.getTitle())
+                            .contentPreview(board.getContent() != null && board.getContent().length() > 100
+                                    ? board.getContent().substring(0, 100) + "..."
+                                    : board.getContent())
+                            .category(board.getCategory())
+                            .authorId(board.getUser().getId())
+                            .authorName(board.getUser().getName())
+                            .createdAt(board.getCreatedAt())
+                            .views(board.getViewCount())
+                            .likes(board.getLikeCount())
+                            .likedByMe(false)
+                            .commentCount(board.getCommentCount() != null ? board.getCommentCount().intValue() : 0)
+                            .attachmentCount(board.getAttachments() != null ? board.getAttachments().size() : 0)
+                            .authorExpertLevel(
+                                    board.getUser().getExpertLevel() != null ? board.getUser().getExpertLevel() : 1)
+                            .adoptedCommentId(board.getAdoptedCommentId())
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 }

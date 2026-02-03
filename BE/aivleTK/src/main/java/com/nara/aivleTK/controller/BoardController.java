@@ -108,4 +108,9 @@ public class BoardController {
 
         return ResponseEntity.ok(ApiResponse.success("게시글 목록입니다.", boardService.getBoardList(blr, userId)));
     }
+
+    @GetMapping("/trending")
+    public ResponseEntity<ApiResponse<java.util.List<BoardListItemResponse>>> getTrendingPosts() {
+        return ResponseEntity.ok(ApiResponse.success("인기 게시글입니다.", boardService.getTrendingPosts()));
+    }
 }
