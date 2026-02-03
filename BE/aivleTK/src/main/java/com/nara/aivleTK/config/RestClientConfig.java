@@ -15,7 +15,7 @@ public class RestClientConfig {
         requestFactory.setReadTimeout(120000);
 
         return RestClient.builder()
-                .baseUrl("http://localhost:8000")
+                .baseUrl("https://aivleachatbot.greenpond-9eab36ab.koreacentral.azurecontainerapps.io")
                 .requestFactory(requestFactory)
                 .build();
     }
