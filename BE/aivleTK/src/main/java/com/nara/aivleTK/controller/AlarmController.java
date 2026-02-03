@@ -23,8 +23,9 @@ public class AlarmController {
     public ResponseEntity<ApiResponse<Object>> createAlarm(
             @RequestParam Integer userId,
             @RequestParam(required = false) Integer bidId,
-            @RequestParam String content) {
-        alarmService.createAlarm(userId, bidId, content);
+            @RequestParam String content,
+            @RequestParam(required = false, defaultValue = "SYSTEM") String alarmType) {
+        alarmService.createAlarm(userId, bidId, content, alarmType);
         return ResponseEntity.ok(ApiResponse.success("알림이 생성되었습니다."));
     }
 

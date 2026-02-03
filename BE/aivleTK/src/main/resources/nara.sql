@@ -96,6 +96,7 @@ CREATE TABLE IF NOT EXISTS `alarm` (
   `user_id` INT NOT NULL,
   `bid_id` INT NOT NULL,
   `alarm_content` VARCHAR(100) NOT NULL,
+  `alarm_type` VARCHAR(20) NOT NULL DEFAULT 'SYSTEM',
   `alarm_date` TIMESTAMP NULL,
   PRIMARY KEY (`alarm_id`),
   INDEX `fk_alarm_user_idx` (`user_id` ASC) VISIBLE,
@@ -136,6 +137,27 @@ CREATE TABLE IF NOT EXISTS `wishlist` (
     FOREIGN KEY (`bid_id`)
     REFERENCES `bid` (`bid_id`)
     ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `user_search_keyword`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `user_search_keyword` ;
+
+CREATE TABLE IF NOT EXISTS `user_search_keyword` (
+  `user_search_keyword_id` INT NOT NULL AUTO_INCREMENT,
+  `user_id` INT NOT NULL,
+  `keyword` VARCHAR(50) NOT NULL,
+  `min_price` BIGINT NULL,
+  `max_price` BIGINT NULL,
+  PRIMARY KEY (`user_search_keyword_id`),
+  INDEX `fk_user_search_keyword_user1_idx` (`user_id` ASC) VISIBLE,
+  CONSTRAINT `fk_user_search_keyword_user1`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `user` (`user_id`)
+    ON DELETE CASCADE
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 

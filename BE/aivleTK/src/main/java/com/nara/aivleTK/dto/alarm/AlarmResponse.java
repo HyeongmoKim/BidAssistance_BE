@@ -19,6 +19,7 @@ public class AlarmResponse {
     private Integer bidId;
     private String bidName;
     private String content;
+    private String alarmType;
     private LocalDateTime date;
 
     public static AlarmResponse from(Alarm alarm) {
@@ -28,6 +29,7 @@ public class AlarmResponse {
                 .bidId(alarm.getBid() != null ? alarm.getBid().getBidId() : null)
                 .bidName(alarm.getBid() != null ? alarm.getBid().getName() : null)
                 .content(alarm.getContent())
+                .alarmType(alarm.getAlarmType())
                 .date(alarm.getDate())
                 .build();
     }

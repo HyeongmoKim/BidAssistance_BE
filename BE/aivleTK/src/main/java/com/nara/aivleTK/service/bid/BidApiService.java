@@ -36,6 +36,7 @@ public class BidApiService {
     private final AnalysisService analysisService;
     private final String SERVICE_KEY = "c1588436fef59fe2109d0eb3bd03747f61c57a482a6d0052de14f85b0bb02fb2";
     private final AttachmentService attachmentService;
+    private final AlarmService alarmService;
 
     public String fetchAndSaveBidData() {
         try {
@@ -139,10 +140,17 @@ public class BidApiService {
                 int analysisCount = 0;
                 int attachmentCount = 0;
 
+                // [New] 키워드 알림 처리
+                try {
+                    alarmService.processKeywordAlarms(savedBids);
+                } catch (Exception e) {
+                    log.error("알림 생성 중 오류: {}", e.getMessage());
+                }
+
                 for (Bid bid : savedBids) {
                     // [Step 1] AI 분석 (실패해도 괜찮음)
                     try {
-                        //analysisService.analyzeAndSave(bid.getBidId());
+                        // analysisService.analyzeAndSave(bid.getBidId());
                         analysisCount++;
                     } catch (Exception e) {
                         log.warn("AI 분석 요청 실패 (ID: {}): {}", bid.getBidRealId(), e.getMessage());
@@ -164,7 +172,8 @@ public class BidApiService {
                             String fileName = fileMap.get(nameKey);
 
                             if (isValid(fileUrl)) {
-                                if (!isValid(fileName)) fileName = "공고문_" + i;
+                                if (!isValid(fileName))
+                                    fileName = "공고문_" + i;
                                 attachmentService.saveAttachmentInfoOnly(bid, fileName, fileUrl);
                                 attachmentCount++;
                             }
@@ -314,6 +323,7 @@ public class BidApiService {
 
         return false;
     }
+
     private boolean isValid(String str) {
         return str != null && !str.trim().isEmpty() && !"null".equals(str);
     }
