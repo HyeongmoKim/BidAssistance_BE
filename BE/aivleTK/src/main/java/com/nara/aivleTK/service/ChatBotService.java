@@ -2,6 +2,7 @@ package com.nara.aivleTK.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nara.aivleTK.config.ChatbotClient;
 import com.nara.aivleTK.domain.Bid;
 import com.nara.aivleTK.dto.chatBot.BidChatDto;
 import com.nara.aivleTK.dto.chatBot.ChatResponse;
@@ -16,6 +17,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigInteger;
 import java.time.DayOfWeek;
@@ -37,6 +39,7 @@ public class ChatBotService {
 
     // 파이썬 서버 주소
     private final String PYTHON_URL = "https://aivleachatbot.greenpond-9eab36ab.koreacentral.azurecontainerapps.io/chat";
+    private final ChatbotClient chatBotClient;
 
     public ChatResponse getChatResponse(PythonChatRequest reqFromClient) {
         // DTO에 payload 필드가 없으므로, 현재는 query만 보냅니다.
@@ -274,7 +277,6 @@ public class ChatBotService {
             // Bid -> Map 요약 변환 (필요한 필드만)
             List<Map<String, Object>> results = searchResults.stream().map(b -> {
                 Map<String, Object> m = new HashMap<>();
-                m.put("bidId", b.getBidId());
                 m.put("bidRealId", b.getBidRealId());
                 m.put("name", b.getName());
                 m.put("region", b.getRegion());
@@ -282,6 +284,7 @@ public class ChatBotService {
                 m.put("startDate", b.getStartDate());
                 m.put("endDate", b.getEndDate());
                 m.put("openDate", b.getOpenDate());
+                m.put("attachments", b.getAttachments());
                 return m;
             }).toList();
 
@@ -317,7 +320,6 @@ public class ChatBotService {
     }
     private BidChatDto toBidChatDto(Bid b) {
         return new BidChatDto(
-                b.getBidId(),
                 b.getBidRealId(),
                 b.getName(),
                 b.getRegion(),
@@ -328,7 +330,8 @@ public class ChatBotService {
                 bigIntToLongSafe(b.getEstimatePrice()),
                 bigIntToLongSafe(b.getBasicPrice()),
                 b.getMinimumBidRate(),
-                b.getBidRange()
+                b.getBidRange(),
+                b.getAttachments()
         );
     }
 
@@ -341,6 +344,13 @@ public class ChatBotService {
             return v.longValue();
         }
     }
-
-
+    public ChatResponse getFileResponse(String text, MultipartFile file) {
+        try{
+            String aiResult = chatBotClient.sendFileAndText(text, file);
+            return new ChatResponse(aiResult);
+        }catch (Exception e){
+            log.error("에러발생",e);
+            return  new ChatResponse(e.getMessage());
+        }
+    }
 }
