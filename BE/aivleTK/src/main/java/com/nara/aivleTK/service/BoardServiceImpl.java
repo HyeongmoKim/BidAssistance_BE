@@ -106,17 +106,10 @@ public class BoardServiceImpl implements BoardService {
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        // Fetch liked board IDs for the current user if userId is provided
-        // Set<Integer> finalLikedBoardIds = null; // Logic removed as
-        // User.getLikedBoards() is missing or failing
-
         Page<Board> boardPage = boardRepository.search(blr, pageable);
 
         List<BoardListItemResponse> items = boardPage.getContent().stream()
                 .map(board -> {
-                    // Comment mapping might be lazy, but BoardListItemResponse.from handles it or
-                    // we use count
-                    // Board has commentCount field? Yes.
                     return BoardListItemResponse.from(board, false,
                             board.getCommentCount() != null ? board.getCommentCount().intValue() : 0);
                 })

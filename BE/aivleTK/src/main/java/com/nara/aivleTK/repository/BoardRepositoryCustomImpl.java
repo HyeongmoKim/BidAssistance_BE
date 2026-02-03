@@ -4,7 +4,6 @@ import com.nara.aivleTK.domain.board.Board;
 import com.nara.aivleTK.domain.board.QBoard;
 import com.nara.aivleTK.domain.user.QUser;
 import com.nara.aivleTK.dto.board.BoardListRequest;
-import com.nara.aivleTK.dto.board.BoardResponse;
 import com.nara.aivleTK.dto.board.CategoryCountsResponse;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
@@ -19,7 +18,6 @@ import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public class BoardRepositoryCustomImpl implements BoardRepositoryCustom {
@@ -56,10 +54,6 @@ public class BoardRepositoryCustomImpl implements BoardRepositoryCustom {
             total = 0L;
         }
 
-        if (total == null) {
-            total = 0L;
-        }
-
         return new PageImpl<>(content, pageable, total);
     }
 
@@ -87,7 +81,7 @@ public class BoardRepositoryCustomImpl implements BoardRepositoryCustom {
 
             all += count;
             if ("question".equals(cat) || "1".equals(cat))
-                question += count; // DB category might be "question" or "1" depending on legacy
+                question += count;
             else if ("info".equals(cat) || "2".equals(cat))
                 info += count;
             else if ("review".equals(cat) || "3".equals(cat))
