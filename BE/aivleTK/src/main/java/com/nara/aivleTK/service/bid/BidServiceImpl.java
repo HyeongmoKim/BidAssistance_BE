@@ -23,65 +23,60 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class BidServiceImpl implements BidService {
 
-    private final BidRepository bidRepository;
-    private final AnalysisResultRepository analysisResultRepository;
-    private final BidDetailService bidDetailService;
-    private final AttachmentRepository attachmentRepository;
+        private final BidRepository bidRepository;
+        private final AnalysisResultRepository analysisResultRepository;
+        private final BidDetailService bidDetailService;
+        private final AttachmentRepository attachmentRepository;
 
-    @Override
-    public List<BidResponse> searchBid(String name, String region, String organization) {
+        @Override
+        public List<BidResponse> searchBid(String name, String region, String organization) {
 
-        boolean noFilter =
-                (name == null || name.isBlank()) &&
-                        (region == null || region.isBlank()) &&
-                        (organization == null || organization.isBlank());
+                boolean noFilter = (name == null || name.isBlank()) &&
+                                (region == null || region.isBlank()) &&
+                                (organization == null || organization.isBlank());
 
-        List<Bid> result = noFilter
-                ? bidRepository.findByEndDateAfter(LocalDateTime.now())
-                : bidRepository.findByNameContainingOrOrganizationContainingOrRegionContaining(
-                name == null ? "" : name,
-                organization == null ? "" : organization,
-                region == null ? "" : region
-        );
+                List<Bid> result = noFilter
+                                ? bidRepository.findByEndDateAfter(LocalDateTime.now())
+                                : bidRepository.searchBasic(
+                                                name == null ? "" : name,
+                                                organization == null ? "" : organization,
+                                                region == null ? "" : region);
 
-        return result.stream()
-                .map(BidResponse::new)
-                .toList();
-    }
+                return result.stream()
+                                .map(BidResponse::new)
+                                .toList();
+        }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<BidResponse> getAllBid() {
-        return bidRepository.findByEndDateAfter(LocalDateTime.now())
-                .stream()
-                .map(BidResponse::new)
-                .toList();
-    }
+        @Override
+        @Transactional(readOnly = true)
+        public List<BidResponse> getAllBid() {
+                return bidRepository.findByEndDateAfter(LocalDateTime.now())
+                                .stream()
+                                .map(BidResponse::new)
+                                .toList();
+        }
 
-    @Override
-    @Transactional(readOnly = true)
-    public BidResponse getBidById(int id) {
+        @Override
+        @Transactional(readOnly = true)
+        public BidResponse getBidById(int id) {
 
-        Bid bid = bidRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Bid not Found. id =" + id));
-        BidResponse response = new BidResponse(bid);
+                Bid bid = bidRepository.findById(id)
+                                .orElseThrow(() -> new ResourceNotFoundException("Bid not Found. id =" + id));
+                BidResponse response = new BidResponse(bid);
 
-        // attachment도 반환하게
-        List<Attachment> attachments = attachmentRepository.findByBidBidId(id);
-        List<AttachmentResponse> attachmentResponses = attachments.stream()
-                        .map(att -> new AttachmentResponse(att.getId(), att.getFileName(), att.getUrl()))
-                        .collect(Collectors.toList());
-        response.setAttachments(attachmentResponses);
+                // attachment도 반환하게
+                List<Attachment> attachments = attachmentRepository.findByBidBidId(id);
+                List<AttachmentResponse> attachmentResponses = attachments.stream()
+                                .map(att -> new AttachmentResponse(att.getId(), att.getFileName(), att.getUrl()))
+                                .collect(Collectors.toList());
+                response.setAttachments(attachmentResponses);
 
-        analysisResultRepository.findByBidBidId(id).ifPresent(ar->
-                response.setAnalysisResult(
-                        AnalysisResultDto.builder()
-                                .bidId(ar.getBid().getBidId())
-                                .analysisContent(ar.getAnalysisContent())
-                                .build()
-                )
-        );
-        bidDetailService.getByBidId(id).ifPresent(response::setBidDetail);
-        return response;
-    }
+                analysisResultRepository.findByBidBidId(id).ifPresent(ar -> response.setAnalysisResult(
+                                AnalysisResultDto.builder()
+                                                .bidId(ar.getBid().getBidId())
+                                                .analysisContent(ar.getAnalysisContent())
+                                                .build()));
+                bidDetailService.getByBidId(id).ifPresent(response::setBidDetail);
+                return response;
+        }
 }

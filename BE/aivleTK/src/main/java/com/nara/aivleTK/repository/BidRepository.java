@@ -14,12 +14,15 @@ public interface BidRepository extends JpaRepository<Bid, Integer> {
 
         boolean existsByBidRealId(String realId);
 
-        List<Bid> findByNameContainingOrOrganizationContainingOrRegionContaining(String name, String organization,
-                        String region);
+        @Query("SELECT b FROM Bid b WHERE " +
+                        "(b.name LIKE %:name% OR b.organization LIKE %:organization% OR b.region LIKE %:region%) " +
+                        "AND b.name NOT LIKE '[취소공고]%' " +
+                        "AND b.endDate > CURRENT_TIMESTAMP " +
+                        "ORDER BY b.bidCreated DESC")
+        List<Bid> searchBasic(@Param("name") String name, @Param("organization") String organization,
+                        @Param("region") String region);
 
-        /**
-         * Python 검색 툴 필터 적용 + 마감 임박순 정렬 쿼리
-         */
+        // Python 검색 툴 필터 적용 + 마감 임박순 정렬 쿼리
         @Query("SELECT b FROM Bid b WHERE " +
                         "(:bidRealId IS NULL OR b.bidRealId = :bidRealId) " +
                         "AND (:keyword IS NULL OR b.name LIKE %:keyword%) " +
@@ -39,7 +42,8 @@ public interface BidRepository extends JpaRepository<Bid, Integer> {
                         "AND (:endDateTo IS NULL OR b.endDate <= :endDateTo) " +
                         "AND (:openDateFrom IS NULL OR b.openDate >= :openDateFrom) " +
                         "AND (:openDateTo IS NULL OR b.openDate <= :openDateTo) " +
-                        "AND (b.endDate > :now) ")
+                        "AND (b.endDate > :now) " +
+                        "AND b.name NOT LIKE '[취소공고]%'")
         Page<Bid> searchDetail(
                         @Param("bidRealId") String bidRealId,
                         @Param("keyword") String keyword,
@@ -62,7 +66,7 @@ public interface BidRepository extends JpaRepository<Bid, Integer> {
                         @Param("now") LocalDateTime now,
                         Pageable pageable);
 
-        @Query("SELECT b FROM Bid b WHERE (b.region IN :regions OR b.organization IN :organizations) AND b.endDate > :now ORDER BY b.bidCreated DESC")
+        @Query("SELECT b FROM Bid b WHERE (b.region IN :regions OR b.organization IN :organizations) AND b.endDate > :now AND b.name NOT LIKE '[취소공고]%' ORDER BY b.bidCreated DESC")
 
         List<Bid> findRecommendedBids(@Param("regions") List<String> regions,
                         @Param("organizations") List<String> organizations, @Param("now") LocalDateTime now);
@@ -73,5 +77,6 @@ public interface BidRepository extends JpaRepository<Bid, Integer> {
 
         List<Bid> findByEndDateAfterAndBidRange(LocalDateTime now, Double bidRange);
 
-        List<Bid> findByEndDateAfter(LocalDateTime now);
+        @Query("SELECT b FROM Bid b WHERE b.endDate > :now AND b.name NOT LIKE '[취소공고]%' ORDER BY b.bidCreated DESC")
+        List<Bid> findByEndDateAfter(@Param("now") LocalDateTime now);
 }
