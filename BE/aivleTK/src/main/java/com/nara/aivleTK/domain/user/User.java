@@ -33,8 +33,8 @@ public class User {
     @Column(length = 255, nullable = false)
     private String password;
 
-    @Column(length = 50, nullable = false)
-    private String question;
+    @Column(name = "question", nullable = false)
+    private Integer question;
 
     @Column(length = 50, nullable = false)
     private String answer;
@@ -43,9 +43,6 @@ public class User {
 
     @Column(name = "role")
     private Integer role; // 00: 일반 유저 01: 기업 10: 관리자 11: 휴면
-
-    @Column(name = "tag")
-    private Integer tag; // 0000~0111: 일반 유저 태그, 1000~1111: 기업 유저 태그
 
     @Builder.Default
     @Column(name = "expert_level")

@@ -42,7 +42,7 @@ public class UserServiceImpl implements UserService {
                 .password(encodedPassword)
                 .role(0)
                 .birth(request.getBirth())
-                .tag(request.getTag())
+
                 .question(request.getQuestion())
                 .answer(request.getAnswer())
                 .build();
@@ -67,7 +67,7 @@ public class UserServiceImpl implements UserService {
                 .email(user.getEmail())
                 .name(user.getName())
                 .birth(user.getBirth())
-                .tag(user.getTag())
+
                 .role(user.getRole())
                 .build();
     }
@@ -94,8 +94,8 @@ public class UserServiceImpl implements UserService {
     }
 
     // 아이디 찾기
-    public String findEmail(String name, String answer, LocalDate birth) {
-        return userRepository.findAllByNameAndQuestionAndBirth(name, answer, birth)
+    public String findEmail(String name, Integer question, String answer, LocalDate birth) {
+        return userRepository.findAllByNameAndQuestionAndBirth(name, question, birth)
                 .map(User::getEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 정보와 일치하는 회원이 없습니다."));
     }
@@ -137,7 +137,7 @@ public class UserServiceImpl implements UserService {
             validatePassword(request.getPassword());
             user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
-        if (request.getQuestion() != null && !request.getQuestion().isBlank()) {
+        if (request.getQuestion() != null) {
             user.setQuestion(request.getQuestion());
         }
 

@@ -27,9 +27,7 @@ public class Bid {
     private String bidRealId;
     @Column
     private String name;
-    @Column(length = 400, nullable = false)
-    @Builder.Default
-    private String content = "내용 없음"; // 에러 피하기 위해 기본 값
+
     @Column
     private LocalDateTime startDate;
     @Column(nullable = true)

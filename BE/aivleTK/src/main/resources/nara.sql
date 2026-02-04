@@ -39,9 +39,8 @@ CREATE TABLE IF NOT EXISTS `user` (
   `password` VARCHAR(255) NOT NULL,
   `role` TINYINT NOT NULL,
   `birth` DATE NOT NULL,
-  `question` VARCHAR(50) NOT NULL,
+  `question` TINYINT NOT NULL,
   `answer` VARCHAR(50) NOT NULL,
-  `tag` TINYINT NULL,
   `expert_level` INT NOT NULL DEFAULT 1,
   `expert_points` INT NOT NULL DEFAULT 0,
   PRIMARY KEY (`user_id`),
@@ -65,7 +64,7 @@ CREATE TABLE IF NOT EXISTS `bid` (
   `bid_id` INT NOT NULL AUTO_INCREMENT,
   `bid_real_id` VARCHAR(20) NOT NULL,
   `name` VARCHAR(100) NOT NULL,
-  `content` VARCHAR(400) NOT NULL,
+
   `start_date` TIMESTAMP NOT NULL,
   `end_date` TIMESTAMP NULL,
   `open_date` TIMESTAMP NOT NULL,
@@ -73,7 +72,7 @@ CREATE TABLE IF NOT EXISTS `bid` (
   `region` VARCHAR(50) NOT NULL,
   `organization` VARCHAR(50) NOT NULL,
   `bid_URL` VARCHAR(300) NOT NULL,
-  `bid_detail` VARCHAR(45) NULL,
+
   `estimate_price` BIGINT NULL,
   `basic_price` BIGINT NULL,
   `minimum_bid_rate` DOUBLE NULL,
@@ -292,8 +291,8 @@ DROP TABLE IF EXISTS `attachment` ;
 
 CREATE TABLE IF NOT EXISTS `attachment` (
   `id` INT NOT NULL AUTO_INCREMENT,
-  `file_name` VARCHAR(45) NOT NULL,
-  `store_name` VARCHAR(45) NULL,
+  `file_name` VARCHAR(255) NOT NULL,
+  `store_name` VARCHAR(255) NULL,
   `url` VARCHAR(1000) NOT NULL,
   `bid_id` INT NULL,
   `board_id` INT NULL,

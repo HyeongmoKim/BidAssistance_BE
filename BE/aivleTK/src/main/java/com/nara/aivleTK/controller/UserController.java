@@ -123,7 +123,7 @@ public class UserController {
                 .orElseThrow(() -> new ResourceNotFoundException("해당 계정이 없습니다."));
 
         // question 필드가 숫자 문자열인 경우 Integer로 파싱
-        Integer questionIndex = Integer.parseInt(user.getQuestion());
+        Integer questionIndex = user.getQuestion();
         QuestionDto data = new QuestionDto(user.getId(), questionIndex);
         return ResponseEntity.ok(new ApiResponse<>("success", "확인성공", data));
     }
@@ -147,7 +147,7 @@ public class UserController {
                 .orElseThrow(() -> new ResourceNotFoundException("해당 계정이 없습니다."));
 
         // question 필드가 숫자 문자열인 경우 Integer로 파싱
-        Integer questionIndex = Integer.parseInt(user.getQuestion());
+        Integer questionIndex = user.getQuestion();
         QuestionDto data = new QuestionDto(user.getId(), questionIndex);
         return ResponseEntity.ok(new ApiResponse<>("success", "확인성공", data));
     }
