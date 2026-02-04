@@ -40,7 +40,7 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
 app:
   cors:
-    allowed-origins: "http://localhost:5173,https://witty-sky-068602700.2.azurestaticapps.net,https://aivleinsight.xyz"
+    allowed-origins: "http://localhost:5173,https://witty-sky-068602700.2.azurestaticapps.net/,https://aivleinsight.xyz/"
   bid:
     fetch:
       schedule: "0 0 0 * * *" # 매일 자정 공고 받아오기
