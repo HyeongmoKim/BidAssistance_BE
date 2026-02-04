@@ -15,7 +15,7 @@ public class RestClientConfig {
     @Bean
     public RestClient pythonRestClient(){
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(30000);
+        requestFactory.setConnectTimeout(120000);
         requestFactory.setReadTimeout(120000);
 
         // [핵심] RestClient용 컨버터 생성
