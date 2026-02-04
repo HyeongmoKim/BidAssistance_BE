@@ -50,13 +50,18 @@ public class Comment {
     @Column(name = "is_adopted")
     private Boolean isAdopted = false; // 답변 채택 여부
 
-
     @Column(name = "comment_content", nullable = true)
     private String backupContent;
+
+    @Column(name = "user_user_id", nullable = true)
+    private Integer backupUserId;
 
     @PrePersist // 에러 방지용
     public void onCreate() {
         this.commentCreateAt = LocalDateTime.now();
         this.backupContent = this.commentContent;
+        if (this.user != null) {
+            this.backupUserId = this.user.getId();
+        }
     }
 }
