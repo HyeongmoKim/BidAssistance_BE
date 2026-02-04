@@ -20,6 +20,7 @@ public class UserKeyword {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private User user;
 
     @Column(name = "keyword", length = 50, nullable = false)

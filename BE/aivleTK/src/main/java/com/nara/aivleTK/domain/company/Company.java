@@ -32,5 +32,6 @@ public class Company {
     // 양방향 매핑 with User
     @Builder.Default
     @OneToMany(mappedBy = "company", cascade = CascadeType.ALL)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private List<User> users = new ArrayList<>();
 }

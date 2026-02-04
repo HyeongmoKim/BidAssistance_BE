@@ -23,8 +23,7 @@ CREATE TABLE IF NOT EXISTS `company` (
   `name` VARCHAR(15) NOT NULL,
   `license` VARCHAR(200) NULL,
   `performance_history` VARCHAR(200) NULL,
-  PRIMARY KEY (`company_id`),
-  UNIQUE INDEX `name_UNIQUE` (`name` ASC) VISIBLE)
+  PRIMARY KEY (`company_id`))
 ENGINE = InnoDB;
 
 

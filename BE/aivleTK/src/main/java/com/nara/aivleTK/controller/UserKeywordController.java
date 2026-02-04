@@ -3,6 +3,7 @@ package com.nara.aivleTK.controller;
 import com.nara.aivleTK.domain.user.User;
 import com.nara.aivleTK.domain.user.UserKeyword;
 import com.nara.aivleTK.dto.ApiResponse;
+import com.nara.aivleTK.dto.user.UserKeywordResponse;
 import com.nara.aivleTK.exception.ResourceNotFoundException;
 import com.nara.aivleTK.repository.UserKeywordRepository;
 import com.nara.aivleTK.repository.UserRepository;
@@ -24,10 +25,15 @@ public class UserKeywordController {
     private final UserRepository userRepository;
 
     @GetMapping("/{userId}")
-    public ResponseEntity<ApiResponse<List<UserKeyword>>> getUserKeywords(@PathVariable Integer userId) {
+    public ResponseEntity<ApiResponse<List<UserKeywordResponse>>> getUserKeywords(@PathVariable Integer userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        return ResponseEntity.ok(ApiResponse.success(userKeywordRepository.findByUser(user)));
+
+        List<UserKeywordResponse> list = userKeywordRepository.findByUser(user).stream()
+                .map(UserKeywordResponse::from)
+                .toList();
+
+        return ResponseEntity.ok(ApiResponse.success(list));
     }
 
     @PostMapping

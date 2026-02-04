@@ -39,7 +39,7 @@ public class CompanyServiceImpl implements CompanyService {
     @Override
     public CompanyResponse getCompany(Integer id) {
         Company company = companyRepository.findById(id)
-                .orElseThrow(()->new ResourceNotFoundException("회사를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ResourceNotFoundException("회사를 찾을 수 없습니다."));
 
         return CompanyResponse.from(company);
     }
@@ -55,7 +55,7 @@ public class CompanyServiceImpl implements CompanyService {
     @Transactional
     public CompanyResponse updateprofile(Integer id, String license, String performanceHistory) {
         Company company = companyRepository.findById(id)
-                .orElseThrow(()->new ResourceNotFoundException("회사를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ResourceNotFoundException("회사를 찾을 수 없습니다."));
         company.setLicense(license);
         company.setPerformanceHistory(performanceHistory);
         return CompanyResponse.from(company);
