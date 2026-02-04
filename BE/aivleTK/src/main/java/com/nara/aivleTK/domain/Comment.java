@@ -50,8 +50,13 @@ public class Comment {
     @Column(name = "is_adopted")
     private Boolean isAdopted = false; // 답변 채택 여부
 
-    @PrePersist
+
+    @Column(name = "comment_content", nullable = true)
+    private String backupContent;
+
+    @PrePersist // 에러 방지용
     public void onCreate() {
         this.commentCreateAt = LocalDateTime.now();
+        this.backupContent = this.commentContent;
     }
 }
