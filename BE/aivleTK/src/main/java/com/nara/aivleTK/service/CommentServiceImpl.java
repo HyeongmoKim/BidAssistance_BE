@@ -52,6 +52,9 @@ public class CommentServiceImpl implements CommentService {
                 .commentContent(request.getContent())
                 .commentCreateAt(LocalDateTime.now())
                 .user(user)
+                // [DB 호환성 패치] 좀비 컬럼 호환성 보장
+                .backupContent(request.getContent())
+                .backupUserId(user.getId())
                 .parent(parent);
 
         // 5. Bid 또는 Board 설정 (분기 처리)
