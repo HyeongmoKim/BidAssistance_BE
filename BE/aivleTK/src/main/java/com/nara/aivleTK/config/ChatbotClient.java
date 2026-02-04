@@ -30,7 +30,7 @@ public class ChatbotClient {
             body.add("text",text);
             if(file!=null&&!file.isEmpty()){
                 Resource fileResource = convertToFileResource(file);
-                body.add("file",file);
+                body.add("file",fileResource);
             }
             Map response = restClient.post()
                     .uri("/chat/file")
