@@ -6,9 +6,7 @@ import com.nara.aivleTK.dto.AnalysisResultDto;
 import com.nara.aivleTK.dto.bid.BidResponse;
 import com.nara.aivleTK.dto.board.AttachmentResponse;
 import com.nara.aivleTK.exception.ResourceNotFoundException;
-import com.nara.aivleTK.repository.AnalysisResultRepository;
-import com.nara.aivleTK.repository.AttachmentRepository;
-import com.nara.aivleTK.repository.BidRepository;
+import com.nara.aivleTK.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +24,11 @@ public class BidServiceImpl implements BidService {
         private final AnalysisResultRepository analysisResultRepository;
         private final BidDetailService bidDetailService;
         private final AttachmentRepository attachmentRepository;
+        private final UserRepository userRepository;
+        private final WishlistRepository wishlistRepository;
+        private final BidLogRepository bidLogRepository;
+        private final BidDetailRepository bidDetailRepository;
+        private final AlarmRepository alarmRepository;
 
         @Override
         public List<BidResponse> searchBid(String name, String region, String organization) {
@@ -76,7 +79,6 @@ public class BidServiceImpl implements BidService {
                                                 .analysisContent(ar.getAnalysisContent())
                                                 .build()));
                 bidDetailService.getByBidId(id).ifPresent(response::setBidDetail);
-                bidDetailService.getByBidId(id).ifPresent(response::setBidDetail);
                 return response;
         }
 
@@ -89,5 +91,28 @@ public class BidServiceImpl implements BidService {
                 return bidRepository.findAllById(ids).stream()
                                 .map(BidResponse::new)
                                 .toList();
+        }
+
+        @Override
+        @Transactional
+        public void deleteBid(Integer id, Integer userId) {
+                Bid bid = bidRepository.findById(id)
+                                .orElseThrow(() -> new ResourceNotFoundException("Bid not found"));
+                com.nara.aivleTK.domain.user.User user = userRepository.findById(userId)
+                                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+                if (user.getRole() != 2) {
+                        throw new IllegalStateException("삭제 권한이 없습니다.");
+                }
+
+                // 관련 엔티티 먼저 삭제 (외래키 제약조건 해결)
+                alarmRepository.deleteByBidBidId(id);
+                wishlistRepository.deleteByBidBidId(id);
+                bidLogRepository.deleteByBidBidId(id);
+                bidDetailRepository.deleteByBidBidId(id);
+                analysisResultRepository.deleteByBidBidId(id);
+                attachmentRepository.deleteByBidBidId(id);
+
+                bidRepository.delete(bid);
         }
 }

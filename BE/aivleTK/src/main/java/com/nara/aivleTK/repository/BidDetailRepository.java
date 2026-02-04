@@ -13,4 +13,6 @@ public interface BidDetailRepository extends JpaRepository<BidDetail, Integer> {
 
     // Bid ID로 존재 여부 확인
     boolean existsByBidBidId(Integer bidId);
+
+    void deleteByBidBidId(Integer bidId);
 }

@@ -61,11 +61,14 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        // UserResponse에 내 정보와 책 목록을 담아서 반환
+        // UserResponse에 내 정보를 담아서 반환
         return UserResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())
                 .name(user.getName())
+                .birth(user.getBirth())
+                .tag(user.getTag())
+                .role(user.getRole())
                 .build();
     }
 

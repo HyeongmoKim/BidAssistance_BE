@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface AttachmentRepository extends JpaRepository<Attachment, Long> {
     List<Attachment> findByBidBidId(int bidId);
+
+    void deleteByBidBidId(Integer bidId);
 }

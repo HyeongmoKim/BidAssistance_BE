@@ -17,6 +17,7 @@ public class UserResponse {
     private String name;
     private LocalDate birth;
     private Integer tag;
+    private Integer role;
 
     public UserResponse(User user) {
         this.id = user.getId();
@@ -24,5 +25,6 @@ public class UserResponse {
         this.name = user.getName();
         this.birth = user.getBirth();
         this.tag = user.getTag();
+        this.role = user.getRole();
     }
 }

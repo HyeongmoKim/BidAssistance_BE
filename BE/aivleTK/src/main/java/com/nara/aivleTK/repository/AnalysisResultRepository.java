@@ -9,9 +9,10 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface AnalysisResultRepository extends JpaRepository<AnalysisResult,Integer> {
+public interface AnalysisResultRepository extends JpaRepository<AnalysisResult, Integer> {
     Optional<AnalysisResult> findByBidBidId(Integer bidId);
+
     Optional<AnalysisResult> findByBid(Bid bid);
 
-
+    void deleteByBidBidId(Integer bidId);
 }

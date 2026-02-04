@@ -20,9 +20,5 @@ public interface BoardService {
 
     BoardListResponse getBoardList(BoardListRequest blr, Integer userId);
 
-    /**
-     * 인기글 상위 3개 조회 (좋아요 × 시간 가중치)
-     * 가중치: 0.7^(경과일수)
-     */
     List<BoardListItemResponse> getTrendingPosts();
 }

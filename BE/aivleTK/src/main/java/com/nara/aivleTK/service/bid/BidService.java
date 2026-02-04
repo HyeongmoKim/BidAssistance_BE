@@ -13,4 +13,5 @@ public interface BidService {
 
     List<BidResponse> getBidsByIds(List<Integer> ids);
 
+    void deleteBid(Integer id, Integer userId);
 }

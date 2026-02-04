@@ -16,6 +16,7 @@ public class BidController {
     private final BidService bidService;
     private final com.nara.aivleTK.service.bid.RecommendationService recommendationService;
     private final com.nara.aivleTK.service.bid.BidLogService bidLogService;
+    private final com.nara.aivleTK.util.JwtUtil jwtUtil;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<BidResponse>>> getBids(
@@ -57,4 +58,21 @@ public class BidController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    @DeleteMapping("/{id:\\d+}")
+    public ResponseEntity<ApiResponse<Object>> deleteBid(@PathVariable Integer id,
+                                                         @CookieValue(value = com.nara.aivleTK.util.JwtUtil.AUTHORIZATION_HEADER, required = false) String tokenValue) {
+
+        if (tokenValue == null) {
+            throw new com.nara.aivleTK.exception.UnauthorizedException("로그인이 필요합니다.");
+        }
+        String token = jwtUtil.substringToken(tokenValue);
+        if (!jwtUtil.validateToken(token)) {
+            throw new com.nara.aivleTK.exception.UnauthorizedException("유효하지 않은 토큰입니다.");
+        }
+        int userId = jwtUtil.getUserInfoFromToken(token).get("user_id", Integer.class);
+
+        bidService.deleteBid(id, userId);
+
+        return ResponseEntity.ok(ApiResponse.success("공고가 삭제되었습니다."));
+    }
 }
