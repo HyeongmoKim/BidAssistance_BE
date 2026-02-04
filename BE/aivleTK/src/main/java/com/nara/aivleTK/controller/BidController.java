@@ -48,6 +48,15 @@ public class BidController {
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
+    @GetMapping("/history")
+    public ResponseEntity<ApiResponse<List<BidResponse>>> getBidHistory(@RequestParam Integer userId) {
+        List<BidResponse> history = bidLogService.getUserBidLogs(userId).stream()
+                .map(log -> BidResponse.from(log.getBid()))
+                .distinct() // 중복 제거 (여러 번 조회했어도 한번만)
+                .toList();
+        return ResponseEntity.ok(ApiResponse.success(history));
+    }
+
     private boolean isBlank(String s) {
         return s == null || s.isBlank();
     }
@@ -60,7 +69,7 @@ public class BidController {
 
     @DeleteMapping("/{id:\\d+}")
     public ResponseEntity<ApiResponse<Object>> deleteBid(@PathVariable Integer id,
-                                                         @CookieValue(value = com.nara.aivleTK.util.JwtUtil.AUTHORIZATION_HEADER, required = false) String tokenValue) {
+            @CookieValue(value = com.nara.aivleTK.util.JwtUtil.AUTHORIZATION_HEADER, required = false) String tokenValue) {
 
         if (tokenValue == null) {
             throw new com.nara.aivleTK.exception.UnauthorizedException("로그인이 필요합니다.");

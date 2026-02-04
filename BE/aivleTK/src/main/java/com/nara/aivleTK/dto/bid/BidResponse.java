@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 @Setter
 @Builder
 @AllArgsConstructor
+@EqualsAndHashCode(of = "id")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class BidResponse {
     private int id;
@@ -79,5 +80,9 @@ public class BidResponse {
         this.attachments = bid.getAttachments().stream()
                 .map(AttachmentResponse::from)
                 .collect(Collectors.toList());
+    }
+
+    public static BidResponse from(Bid bid) {
+        return new BidResponse(bid);
     }
 }
