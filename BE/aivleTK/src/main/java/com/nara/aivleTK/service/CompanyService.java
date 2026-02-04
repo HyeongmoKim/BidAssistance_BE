@@ -12,5 +12,5 @@ public interface CompanyService {
 
     List<CompanyResponse> getAllCompanies();
 
-    CompanyResponse updateprofile(Integer id, String license, String performanceHistory);
+    CompanyResponse updateCompany(Integer id, String name, String position);
 }

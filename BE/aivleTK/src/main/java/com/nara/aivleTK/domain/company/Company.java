@@ -20,14 +20,12 @@ public class Company {
     @Column(name = "company_id")
     private Integer id;
 
-    @Column(length = 15, nullable = false)
+    @Column(length = 50, nullable = false)
     private String name;
 
-    @Column(length = 200)
-    private String license;
-
-    @Column(name = "performance_history", length = 200)
-    private String performanceHistory;
+    // 직책 (대표, 팀장, 사원 등)
+    @Column(name = "position", length = 50)
+    private String position;
 
     // 양방향 매핑 with User
     @Builder.Default

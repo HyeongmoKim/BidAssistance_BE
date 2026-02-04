@@ -21,8 +21,7 @@ DROP TABLE IF EXISTS `company` ;
 CREATE TABLE IF NOT EXISTS `company` (
   `company_id` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(15) NOT NULL,
-  `license` VARCHAR(200) NULL,
-  `performance_history` VARCHAR(200) NULL,
+  `position` VARCHAR(50) NULL,
   PRIMARY KEY (`company_id`))
 ENGINE = InnoDB;
 
