@@ -30,7 +30,7 @@ public class AnalysisResult {
     @Column(precision = 10, scale = 4)
     private BigDecimal avgRate;
     private LocalDateTime analysisDate;
-    @Column(length = 1000)
+    @Column(length = 10000)
     private String analysisContent;
     @Column(length = 500)
     private String pdfUrl;
