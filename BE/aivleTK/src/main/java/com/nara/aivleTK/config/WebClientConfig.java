@@ -14,7 +14,7 @@ import java.time.Duration;
 public class WebClientConfig {
 
     // 1. 기본값을 9999로 설정하고, 변수(fastApiBaseUrl)에 저장합니다.
-    @Value("${fastapi.base-url:https://aivlepdf.greenpond-9eab36ab.koreacentral.azurecontainerapps.io}")
+    @Value("${fastapi.base-url:https://bid-prediction-api-v2.orangehill-6dfcc5e6.koreacentral.azurecontainerapps.io}")
     private String fastApiBaseUrl;
 
     @Bean
