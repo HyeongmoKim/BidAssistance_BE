@@ -19,7 +19,7 @@ public class AnalysisResultController {
 
     // 1. 분석 요청 API (프론트에서 '분석하기' 버튼 클릭 시 호출)
     // POST /api/analysis/predict/10 (공고 ID 10번 분석 요청)
-    @PostMapping("/{bidId:\\d+}")
+    @PostMapping("/predict/{bidId:\\d+}")
     public ResponseEntity<ApiResponse<AnalysisResultDto>> performAnalysis(@PathVariable Integer bidId) {
         AnalysisResultDto result =  analysisService.analyzeAndSave(bidId);
         return ResponseEntity.ok(ApiResponse.success(result));
