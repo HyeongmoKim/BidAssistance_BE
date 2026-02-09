@@ -22,9 +22,22 @@ public class BoardController {
     private final BoardRepository boardRepository;
     private final JwtUtil jwtUtil;
 
+    private String resolveToken(String cookieToken, String headerToken) {
+        if (cookieToken != null && !cookieToken.isBlank()) {
+            return cookieToken;
+        }
+        if (headerToken != null && !headerToken.isBlank()) {
+            return headerToken;
+        }
+        return null;
+    }
+
     @PostMapping("/{id:\\d+}")
     public ResponseEntity<ApiResponse<BoardResponse>> updatePost(@PathVariable Integer id, @RequestBody BoardRequest br,
-            @CookieValue(value = JwtUtil.AUTHORIZATION_HEADER, required = false) String tokenValue) {
+            @CookieValue(value = JwtUtil.AUTHORIZATION_HEADER, required = false) String cookieToken,
+            @RequestHeader(value = JwtUtil.AUTHORIZATION_HEADER, required = false) String headerToken) {
+
+        String tokenValue = resolveToken(cookieToken, headerToken);
         if (tokenValue == null) {
             throw new UnauthorizedException("로그인이 필요합니다.");
         }
@@ -44,7 +57,10 @@ public class BoardController {
 
     @DeleteMapping("/{id:\\d+}")
     public ResponseEntity<ApiResponse<Object>> deletePost(@PathVariable Integer id,
-            @CookieValue(value = JwtUtil.AUTHORIZATION_HEADER, required = false) String tokenValue) {
+            @CookieValue(value = JwtUtil.AUTHORIZATION_HEADER, required = false) String cookieToken,
+            @RequestHeader(value = JwtUtil.AUTHORIZATION_HEADER, required = false) String headerToken) {
+
+        String tokenValue = resolveToken(cookieToken, headerToken);
         if (tokenValue == null) {
             throw new UnauthorizedException("로그인이 필요합니다.");
         }
@@ -77,7 +93,10 @@ public class BoardController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<BoardResponse>> createPost(@RequestBody BoardRequest br,
-            @CookieValue(value = JwtUtil.AUTHORIZATION_HEADER, required = false) String tokenValue) {
+            @CookieValue(value = JwtUtil.AUTHORIZATION_HEADER, required = false) String cookieToken,
+            @RequestHeader(value = JwtUtil.AUTHORIZATION_HEADER, required = false) String headerToken) {
+
+        String tokenValue = resolveToken(cookieToken, headerToken);
         if (tokenValue == null) {
             throw new UnauthorizedException("로그인이 필요합니다.");
         }
@@ -93,8 +112,12 @@ public class BoardController {
 
     @GetMapping("/posts")
     public ResponseEntity<ApiResponse<BoardListResponse>> boardList(@ModelAttribute BoardListRequest blr,
-            @CookieValue(value = JwtUtil.AUTHORIZATION_HEADER, required = false) String tokenValue) {
+            @CookieValue(value = JwtUtil.AUTHORIZATION_HEADER, required = false) String cookieToken,
+            @RequestHeader(value = JwtUtil.AUTHORIZATION_HEADER, required = false) String headerToken) {
+
         Integer userId = null;
+        String tokenValue = resolveToken(cookieToken, headerToken);
+
         if (tokenValue != null) {
             try {
                 String token = jwtUtil.substringToken(tokenValue);
