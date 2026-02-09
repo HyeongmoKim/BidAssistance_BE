@@ -138,6 +138,7 @@ public class BoardServiceImpl implements BoardService {
         java.time.LocalDate today = java.time.LocalDate.now();
 
         return recentBoards.stream()
+                .filter(board -> !"notice".equals(board.getCategory())) // 공지사항 제외
                 .map(board -> {
                     long daysSincePosted = java.time.temporal.ChronoUnit.DAYS.between(
                             board.getCreatedAt().toLocalDate(), today);
