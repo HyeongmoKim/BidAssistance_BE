@@ -45,18 +45,17 @@ public class User {
     private Integer role; // 00: 일반 유저 01: 기업 10: 관리자 11: 휴면
 
     @Builder.Default
-    @Column(name = "expert_level")
-    private Integer expertLevel = 1; // 1: 곡괭이, 2: 굴삭기, 3: 지게차, 4: 불도저, 5: 포크레인
-
-    @Builder.Default
     @Column(name = "expert_points")
     private Integer expertPoints = 0; // 활동 포인트
 
-    /**
-     * 포인트 추가 및 레벨 자동 계산
-     */
+    public int calcExpertLevel() {
+        int pts = (this.expertPoints != null) ? this.expertPoints : 0;
+        if (pts == -100)
+            return 0; // 관리자
+        return Math.max(1, Math.min(5, (pts / 100) + 1));
+    }
+
     public void addExpertPoints(int points) {
         this.expertPoints = (this.expertPoints == null ? 0 : this.expertPoints) + points;
-        this.expertLevel = Math.min(5, (this.expertPoints / 100) + 1);
     }
 }

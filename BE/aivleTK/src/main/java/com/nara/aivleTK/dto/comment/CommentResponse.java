@@ -40,10 +40,6 @@ public class CommentResponse {
             this.parentCommentId = comment.getParent().getCommentId();
         }
         this.isAdopted = comment.getIsAdopted() != null ? comment.getIsAdopted() : false;
-        if (comment.getUser() != null) {
-            this.userExpertLevel = comment.getUser().getExpertLevel() != null ? comment.getUser().getExpertLevel() : 1;
-        } else {
-            this.userExpertLevel = 1;
-        }
+        this.userExpertLevel = (comment.getUser() != null) ? comment.getUser().calcExpertLevel() : 1;
     }
 }

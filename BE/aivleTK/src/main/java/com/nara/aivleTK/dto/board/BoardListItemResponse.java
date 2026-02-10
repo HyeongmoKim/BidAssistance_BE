@@ -45,7 +45,7 @@ public class BoardListItemResponse {
                 .likedByMe(likedByMe)
                 .commentCount(commentCount)
                 .attachmentCount(board.getAttachments() != null ? board.getAttachments().size() : 0)
-                .authorExpertLevel(board.getUser().getExpertLevel() != null ? board.getUser().getExpertLevel() : 1)
+                .authorExpertLevel(board.getUser().calcExpertLevel())
                 .adoptedCommentId(board.getAdoptedCommentId())
                 .build();
     }

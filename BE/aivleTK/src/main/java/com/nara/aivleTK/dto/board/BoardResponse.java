@@ -35,10 +35,7 @@ public class BoardResponse {
                                                 .collect(Collectors.toList())
                                 : List.of();
 
-                Integer expertLevel = 1;
-                if (board.getUser() != null && board.getUser().getExpertLevel() != null) {
-                        expertLevel = board.getUser().getExpertLevel();
-                }
+                Integer expertLevel = (board.getUser() != null) ? board.getUser().calcExpertLevel() : 1;
 
                 return BoardResponse.builder()
                                 .id(board.getId())
@@ -76,9 +73,7 @@ public class BoardResponse {
                                                 .map(AttachmentResponse::from)
                                                 .collect(Collectors.toList())
                                 : List.of();
-                this.authorExpertLevel = (board.getUser() != null && board.getUser().getExpertLevel() != null)
-                                ? board.getUser().getExpertLevel()
-                                : 1;
+                this.authorExpertLevel = (board.getUser() != null) ? board.getUser().calcExpertLevel() : 1;
                 this.adoptedCommentId = board.getAdoptedCommentId();
         }
 }
