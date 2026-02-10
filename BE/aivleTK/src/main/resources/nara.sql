@@ -40,8 +40,6 @@ CREATE TABLE IF NOT EXISTS `user` (
   `role` TINYINT NOT NULL,
   `birth` DATE NOT NULL,
   `question` TINYINT NOT NULL,
-  `answer` VARCHAR(50) NOT NULL,
-  `expert_level` INT NOT NULL DEFAULT 1,
   `expert_points` INT NOT NULL DEFAULT 0,
   PRIMARY KEY (`user_id`),
   INDEX `fk_user_company1_idx` (`company_id` ASC) VISIBLE,
