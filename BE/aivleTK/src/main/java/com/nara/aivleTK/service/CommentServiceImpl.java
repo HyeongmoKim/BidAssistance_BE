@@ -62,9 +62,17 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Comment not found"));
 
-        if (!comment.getUser().getId().equals(userId)) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        // 작성자 본인이거나 관리자(role=2)인 경우 삭제 허용
+        boolean isOwner = comment.getUser().getId().equals(userId);
+        boolean isAdmin = user.getRole() != null && user.getRole() == 2;
+
+        if (!isOwner && !isAdmin) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "삭제할 수 없습니다.");
         }
+
         commentRepository.delete(comment);
     }
 
