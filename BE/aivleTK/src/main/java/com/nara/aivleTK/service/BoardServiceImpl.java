@@ -167,7 +167,6 @@ public class BoardServiceImpl implements BoardService {
                             .commentCount(board.getCommentCount() != null ? board.getCommentCount().intValue() : 0)
                             .attachmentCount(board.getAttachments() != null ? board.getAttachments().size() : 0)
                             .authorExpertLevel(board.getUser().calcExpertLevel())
-                            .adoptedCommentId(board.getAdoptedCommentId())
                             .build();
                 })
                 .collect(Collectors.toList());

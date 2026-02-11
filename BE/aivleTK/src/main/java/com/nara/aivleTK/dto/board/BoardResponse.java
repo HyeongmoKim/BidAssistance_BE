@@ -26,7 +26,6 @@ public class BoardResponse {
         private LocalDateTime updatedAt;
         private List<AttachmentResponse> attachments;
         private Integer authorExpertLevel;
-        private Integer adoptedCommentId;
 
         public static BoardResponse from(Board board) {
                 List<AttachmentResponse> attachmentResponses = board.getAttachments() != null
@@ -51,7 +50,6 @@ public class BoardResponse {
                                 .updatedAt(board.getUpdatedAt())
                                 .attachments(attachmentResponses)
                                 .authorExpertLevel(expertLevel)
-                                .adoptedCommentId(board.getAdoptedCommentId())
                                 .build();
         }
 
@@ -74,6 +72,5 @@ public class BoardResponse {
                                                 .collect(Collectors.toList())
                                 : List.of();
                 this.authorExpertLevel = (board.getUser() != null) ? board.getUser().calcExpertLevel() : 1;
-                this.adoptedCommentId = board.getAdoptedCommentId();
         }
 }

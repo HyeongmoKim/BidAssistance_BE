@@ -227,7 +227,6 @@ CREATE TABLE IF NOT EXISTS `board` (
   `view_count` INT NOT NULL,
   `created_at` TIMESTAMP NOT NULL,
   `updated_at` TIMESTAMP NULL,
-  `adopted_comment_id` INT NULL,
   PRIMARY KEY (`board_id`),
   INDEX `fk_board_user1_idx` (`user_id` ASC) VISIBLE,
   UNIQUE INDEX `board_id_UNIQUE` (`board_id` ASC) VISIBLE,
@@ -248,30 +247,16 @@ CREATE TABLE IF NOT EXISTS `comment` (
   `comment_id` INT NOT NULL AUTO_INCREMENT,
   `content` VARCHAR(300) NOT NULL,
   `comment_date` TIMESTAMP NOT NULL,
-  `bid_id` INT NULL,
-  `board_id` INT NULL,
-  `parent_comment_id` INT NULL,
+  `board_id` INT NOT NULL,
   `users_user_id` INT NOT NULL,
   `is_adopted` BOOLEAN NOT NULL DEFAULT FALSE,
   PRIMARY KEY (`comment_id`),
-  INDEX `fk_comment_bid1_idx` (`bid_id` ASC) VISIBLE,
   INDEX `fk_comment_board1_idx` (`board_id` ASC) VISIBLE,
-  INDEX `fk_comment_comment1_idx` (`parent_comment_id` ASC) VISIBLE,
   INDEX `fk_comment_user1_idx` (`users_user_id` ASC) VISIBLE,
   UNIQUE INDEX `comment_id_UNIQUE` (`comment_id` ASC) VISIBLE,
-  CONSTRAINT `fk_comment_bid1`
-    FOREIGN KEY (`bid_id`)
-    REFERENCES `bid` (`bid_id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
   CONSTRAINT `fk_comment_board1`
     FOREIGN KEY (`board_id`)
     REFERENCES `board` (`board_id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_comment_comment1`
-    FOREIGN KEY (`parent_comment_id`)
-    REFERENCES `comment` (`comment_id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_comment_user1`

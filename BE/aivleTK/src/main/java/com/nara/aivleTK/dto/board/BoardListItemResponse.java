@@ -24,7 +24,6 @@ public class BoardListItemResponse {
     private Integer commentCount;
     private Integer attachmentCount;
     private Integer authorExpertLevel; // 작성자 등급 (1~5)
-    private Integer adoptedCommentId; // 채택된 댓글 ID
 
     public static BoardListItemResponse from(Board board, Boolean likedByMe, Integer commentCount) {
         String preview = board.getContent();
@@ -46,7 +45,6 @@ public class BoardListItemResponse {
                 .commentCount(commentCount)
                 .attachmentCount(board.getAttachments() != null ? board.getAttachments().size() : 0)
                 .authorExpertLevel(board.getUser().calcExpertLevel())
-                .adoptedCommentId(board.getAdoptedCommentId())
                 .build();
     }
 }

@@ -30,8 +30,4 @@ public class BidLog {
     @Column(nullable = false)
     private LocalDateTime date; // 입찰 일시
 
-    @Builder.Default
-    @Column(nullable = false)
-    private Long price = 0L; // DB에 NOT NULL로 존재, 조회 로그에는 0 기본값
-
 }

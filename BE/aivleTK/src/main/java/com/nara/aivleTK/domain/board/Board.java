@@ -63,9 +63,6 @@ public class Board extends AutoTimeRecode {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    @Column(name = "adopted_comment_id")
-    private Integer adoptedCommentId; // 채택된 댓글 ID (질문 카테고리용)
-
     @Builder.Default
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Attachment> attachments = new ArrayList<>();

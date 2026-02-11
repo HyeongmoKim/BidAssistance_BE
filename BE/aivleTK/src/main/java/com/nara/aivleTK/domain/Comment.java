@@ -30,21 +30,13 @@ public class Comment {
     @Column(name = "comment_date", nullable = false)
     private LocalDateTime commentCreateAt;
 
-    @ManyToOne
-    @JoinColumn(name = "bid_id", nullable = true)
-    private Bid bid;
-
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "board_id", nullable = true)
+    @JoinColumn(name = "board_id", nullable = false)
     private Board board;
 
     @ManyToOne
     @JoinColumn(name = "users_user_id", nullable = false)
     private User user;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_comment_id")
-    private Comment parent;
 
     @Builder.Default
     @Column(name = "is_adopted")

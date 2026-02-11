@@ -16,8 +16,6 @@ public class CommentResponse {
     private LocalDateTime commentCreatedAt;
     private Integer userId;
     private String userName;
-    private Integer bidId;
-    private Integer parentCommentId;
     private Integer boardId;
     private Boolean isAdopted; // 채택 여부
     private Integer userExpertLevel; // 작성자 등급 (1~5)
@@ -30,14 +28,8 @@ public class CommentResponse {
             this.userId = comment.getUser().getId();
             this.userName = comment.getUser().getName();
         }
-        if (comment.getBid() != null) {
-            this.bidId = comment.getBid().getBidId();
-        }
         if (comment.getBoard() != null) {
             this.boardId = comment.getBoard().getId();
-        }
-        if (comment.getParent() != null) {
-            this.parentCommentId = comment.getParent().getCommentId();
         }
         this.isAdopted = comment.getIsAdopted() != null ? comment.getIsAdopted() : false;
         this.userExpertLevel = (comment.getUser() != null) ? comment.getUser().calcExpertLevel() : 1;

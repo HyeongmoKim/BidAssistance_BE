@@ -16,26 +16,11 @@ import java.util.List;
 public class CommentController {
     private final CommentService commentService;
 
-    @PostMapping("/bids/{bidId:\\d+}/comments")
-    public ResponseEntity<ApiResponse<CommentResponse>> createBidComment(
-            @PathVariable("bidId") int bidId,
-            @RequestBody CommentCreateRequest request) {
-        CommentResponse response = commentService.createComment(bidId, null, request);
-        return ResponseEntity.ok(ApiResponse.success("댓글이 작성되었습니다.", response));
-    }
-
-    @GetMapping("/bids/{bidId:\\d+}/comments")
-    public ResponseEntity<ApiResponse<List<CommentResponse>>> getCommentsByBid(
-            @PathVariable("bidId") int bidId) {
-        List<CommentResponse> comments = commentService.getCommentsByBid(bidId);
-        return ResponseEntity.ok(ApiResponse.success(comments));
-    }
-
     @PostMapping("/boards/{boardId:\\d+}/comments")
     public ResponseEntity<ApiResponse<CommentResponse>> createBoardComment(
             @PathVariable("boardId") int boardId,
             @RequestBody CommentCreateRequest request) {
-        CommentResponse response = commentService.createComment(null, boardId, request);
+        CommentResponse response = commentService.createComment(boardId, request);
         return ResponseEntity.ok(ApiResponse.success("댓글이 작성되었습니다.", response));
     }
 
