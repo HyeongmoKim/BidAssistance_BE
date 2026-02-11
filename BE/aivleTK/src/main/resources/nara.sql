@@ -245,7 +245,7 @@ DROP TABLE IF EXISTS `comment` ;
 
 CREATE TABLE IF NOT EXISTS `comment` (
   `comment_id` INT NOT NULL AUTO_INCREMENT,
-  `content` VARCHAR(300) NOT NULL,
+  `content` VARCHAR(500) NOT NULL,
   `comment_date` TIMESTAMP NOT NULL,
   `board_id` INT NOT NULL,
   `users_user_id` INT NOT NULL,
